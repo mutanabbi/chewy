@@ -3,14 +3,14 @@
 # Install script for `chewy`
 #
 
+import distutils.core
+import portage.output
 import sys
-
-from distutils.core import setup
 
 # this affects the names of all the directories we do stuff with
 sys.path.insert(0, './')
 
-setup(
+distutils.core.setup(
     name             = 'chewy'
   , version          = 0.1
   , description      = 'Python script to manage CMake modules'
