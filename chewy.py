@@ -4,10 +4,12 @@ import argparse
 import os
 import http.client
 import urllib.parse
+import sys
 #from os import walk
 
 
 def rcv_list(rep_url):
+    assert(rep_url)
     o = urllib.parse.urlsplit(rep_url)
     if o.scheme == 'http':
         conn = http.client.HTTPConnection(o.hostname, o.port)
@@ -29,16 +31,42 @@ def do_list(url_list):
     for url in url_list:
         result += rcv_list(url)
 
+    # TODO: Ugly implemented fancy output :). Refactor it!
     lens = [0, 0]
     for i in result:
         lens[0] = max(lens[0], len(i[0]))
         lens[1] = max(lens[1], len(i[1]))
-
     frmt = '{{:{}}}\t{{:{}}}\t{{}}'.format(lens[0], lens[1])
-
     for i in result:
         print(frmt.format(i[0], i[1], urllib.parse.unquote_plus(i[2])))
 
+
+def rcv_file(file_url):
+    assert(file_url)
+    o = urllib.parse.urlsplit(file_url)
+    if o.scheme == 'http':
+        conn = http.client.HTTPConnection(o.hostname, o.port)
+    elif o.scheme == 'https':
+        conn = http.client.HTTPSConnection(o.hostname, o.port)
+    else:
+        raise RuntimeError('Unsupported scheme')
+    conn.request('GET', o.path)
+    # TODO: get manifest to check dependencies
+    r = conn.getresponse()
+    if not r.status == http.client.OK:
+        raise RuntimeError('Unable to get manifest: %{} - %{}' % r.status, r.reason)
+    return r.read()
+
+
+
+def do_get(url_list):
+    assert("At least one url should be passed" and url_list)
+    for url in url_list:
+        o = urllib.parse.urlsplit(url)
+        data = rcv_file(url)
+        os.makedirs(os.path.join(_work_dir, os.path.dirname(o.path).strip('/')), exist_ok = True)
+        f = open(os.path.join(_work_dir, o.path.strip('/')), 'wt', encoding = 'utf-8')
+        f.write(data.decode('utf-8'))
 
 
 def work_dir_lookup():
@@ -71,10 +99,20 @@ def main():
 
     args = cmd_parser.parse_args()
 
+    global _work_dir
+
+    if args.work_dir:
+        if os.path.isdir(args.work_dir):
+            _work_dir = args.work_dir
+        else:
+            raise RuntimeError('You point to wrong working directory')
+    else:
+        _work_dir = work_dir_lookup()
+
     if args.cmd == 'list':
         do_list(args.rep_uri)
-
-    work_dir = args.work_dir if args.work_dir else work_dir_lookup()
+    elif args.cmd == 'get':
+        do_get(args.file_uri)
 
     #for root, dirs, files in walk('../', topdown = False):
     #    print('-----------------------')
