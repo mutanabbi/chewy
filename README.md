@@ -1,7 +1,7 @@
 **What is Chewy?**
 
 Chewy is a CMake Helpers Easy Way sYnchronizer
-Chewy was deigned as a part of C++/Python projects' build system manager. It allows to check versions of cmake-helpers and to keep their freshness by synchronizing with a central repository, so you always have last versions of them in all of your projects.
+Chewy was deigned as a part of C++/Python projects' CMake-based build system manager. It allows to check versions of cmake-helpers and to keep their freshness by synchronizing with a central repository, so you always have last versions of them in all of your projects.
 
 
 **Chewy sounds so strange! How to communicate with him? What commands he accept?**
