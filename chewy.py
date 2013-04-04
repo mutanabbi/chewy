@@ -25,8 +25,20 @@ def rcv_list(rep_url):
 
 
 def do_list(url_list):
+    result = []
     for url in url_list:
-        print(rcv_list(url))
+        result += rcv_list(url)
+
+    lens = [0, 0]
+    for i in result:
+        lens[0] = max(lens[0], len(i[0]))
+        lens[1] = max(lens[1], len(i[1]))
+
+    frmt = '{{:{}}}\t{{:{}}}\t{{}}'.format(lens[0], lens[1])
+
+    for i in result:
+        print(frmt.format(i[0], i[1], urllib.parse.unquote_plus(i[2])))
+
 
 
 def work_dir_lookup():
@@ -62,11 +74,7 @@ def main():
     if args.cmd == 'list':
         do_list(args.rep_uri)
 
-    # DEBUG ONLY
-    print(args.cmd)
-
     work_dir = args.work_dir if args.work_dir else work_dir_lookup()
-    print('Workdir: {}'.format(work_dir))
 
     #for root, dirs, files in walk('../', topdown = False):
     #    print('-----------------------')
