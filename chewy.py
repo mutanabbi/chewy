@@ -2,15 +2,31 @@
 # -*- coding: utf-8 -*-
 import argparse
 import os
+import http.client
+import urllib.parse
 #from os import walk
 
 
 def rcv_list(rep_url):
-    pass
+    o = urllib.parse.urlsplit(rep_url)
+    if o.scheme == 'http':
+        conn = http.client.HTTPConnection(o.hostname, o.port)
+    elif o.scheme == 'https':
+        conn = http.client.HTTPSConnection(o.hostname, o.port)
+    else:
+        raise RuntimeError('Unsupported scheme')
+    MANIFEST_PATH = '/manifest'
+    conn.request('GET', o.path + MANIFEST_PATH)
+    r = conn.getresponse()
+    if not r.status == http.client.OK:
+        raise RuntimeError('Unable to get manifest: %{} - %{}' % r.status, r.reason)
+    data = r.read()
+    return tuple(line.split() for line in data.decode('utf-8').split('\n') if line.strip() and line[0] != '#')
 
 
 def do_list(url_list):
-    pass
+    for url in url_list:
+        print(rcv_list(url))
 
 
 def work_dir_lookup():
@@ -21,7 +37,7 @@ def work_dir_lookup():
             return cur_path
         else:
             cur_path = os.path.split(cur_path)[0]
-    raise 'OOPS'
+    raise RuntimeError('OOPS')
 
 
 
@@ -43,10 +59,11 @@ def main():
 
     args = cmd_parser.parse_args()
 
+    if args.cmd == 'list':
+        do_list(args.rep_uri)
+
     # DEBUG ONLY
-    print(dir(args))
     print(args.cmd)
-    print(args.file_uri)
 
     work_dir = args.work_dir if args.work_dir else work_dir_lookup()
     print('Workdir: {}'.format(work_dir))
