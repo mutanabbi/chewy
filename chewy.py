@@ -44,7 +44,30 @@ class http_endpoint(urllib.parse.SplitResult):
             raise RuntimeError("Unsupported scheme in URL `{}'".format(url))
 
 
-class chewy_session:
+
+class session_factory(object):
+    def __init__(self):
+        self.__cp = {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        for domain in self.__cp:
+            self.__cp[domain].close()
+
+    def get_session(self, ep):
+        key = ep.scheme, ep.hostname, ep.port
+        if key in self.__cp:
+            return self.__cp[key]
+        else:
+            cs = chewy_session(ep)
+            self.__cp[key] = cs
+            return cs
+
+
+
+class chewy_session(object):
     '''Class to access a remote CHEWY repository'''
 
     def __init__(self, endpoint):
@@ -52,11 +75,16 @@ class chewy_session:
         if not isinstance(endpoint, http_endpoint):
             raise TypeError('Endpoint to contact has invalid type')
 
-        self.ep = endpoint
-        if self.ep.is_ssl:
-            self.connection = http.client.HTTPSConnection(self.ep.hostname, self.ep.port)
+        self.__ep = endpoint
+        if self.__ep.is_ssl:
+            self.__connection = http.client.HTTPSConnection(self.__ep.hostname, self.__ep.port)
         else:
-            self.connection = http.client.HTTPConnection(self.ep.hostname, self.ep.port)
+            self.__connection = http.client.HTTPConnection(self.__ep.hostname, self.__ep.port)
+        self.__connection.connect()
+
+
+    def close(self):
+        self.__connection.close()
 
 
     def get_manifest(self, url):
@@ -72,13 +100,14 @@ class chewy_session:
     def retrieve_remote_file(self, file_path):
         '''Retrieve the file specified
         '''
-        self.connection.request('GET', file_path)
-        r = self.connection.getresponse()
+        self.__connection.request('GET', file_path)
+        r = self.__connection.getresponse()
+        data = r.read()
         if r.status != http.client.OK:
             raise RuntimeError(
                 "Unable to retrieve a file `{}': {} - {}".format(file_path, r.status, r.reason)
               )
-        return r.read().decode('utf-8')
+        return data.decode('utf-8')
 
 
 
@@ -87,8 +116,9 @@ class chewy_session:
 def rcv_list(rep_url):
     assert(rep_url)
     ep = http_endpoint(rep_url)
-    cs = chewy_session(ep)
-    return cs.get_manifest(os.path.join(ep.path, _MANIFEST_PATH))
+    with session_factory() as sf:
+        return sf.get_session(ep).get_manifest(os.path.join(ep.path, _MANIFEST_PATH))
+
 
 
 def do_list(url_list):
@@ -130,30 +160,30 @@ def do_list(url_list):
         print(frmt.format(module[0], module[1], module[2]))
 
 
-# TODO Move HTTP connection code to reusable function/class
-# TODO Use LRU cache (decorator) to obtain CHEWY session instance for particular repo
-def rcv_file(file_url):
-    assert(file_url)
-    ep = http_endpoint(file_url)
-    cs = chewy_session(ep)
-    return cs.retrieve_remote_file(ep.path)
-
 
 def do_get(url_list):
     if not url_list:
         log.eerror('At least one url should be passed')
 
-    for url in url_list:
-        # TODO Handle exceptions, do error reporting and try to continue
-        data = rcv_file(url)                                # Get a remote file into string
+    with session_factory() as sf:
+        for url in url_list:
+            try:
+                ep = http_endpoint(url)
+                cs = sf.get_session(ep)
+                print (ep)
+                data = cs.retrieve_remote_file(ep.path)             # Get a remote file into string
 
-        # Going to write just received data to the modules dir
-        o = urllib.parse.urlsplit(url)
-        os.makedirs(os.path.join(_modules_dir, os.path.dirname(o.path).strip('/')), exist_ok=True)
-        f = open(os.path.join(_modules_dir, o.path.strip('/')), 'wt', encoding = 'utf-8')
-        f.write(data.decode('utf-8'))
-        # TODO Retrieve dependencies according manifest
-        # TODO Version compare required as well
+                # Going to write just received data to the modules dir
+                o = urllib.parse.urlsplit(url)
+                os.makedirs(os.path.join(_modules_dir, os.path.dirname(o.path).strip('/')), exist_ok=True)
+                with open(os.path.join(_modules_dir, o.path.strip('/')), 'wt', encoding = 'utf-8') as f:
+                    f.write(data.decode('utf-8'))
+                    # TODO Retrieve dependencies according manifest
+                    # TODO Version compare required as well
+            # TODO pass 'can't create modules dir' exception through
+            except RuntimeError as ex:
+                log.eerror("Can't get {} file: {}".format(url, ex))
+
 
 
 def modules_dir_lookup(start_path = os.getcwd()):
@@ -167,6 +197,7 @@ def modules_dir_lookup(start_path = os.getcwd()):
     # TODO Throw instead and log later!?
     log.eerror("Unable to find CMake modules directory `{}'".format(_EXPECTED_CMAKE_MODULES_PATH))
     sys.exit(1)
+
 
 
 def main():
@@ -218,9 +249,9 @@ def main():
     else:
         # Initialize working directory
         global _modules_dir
-        if args.work_dir:
-            if os.path.isdir(args.work_dir):
-                _modules_dir = args.work_dir
+        if args.modules_dir:
+            if os.path.isdir(args.modules_dir):
+                _modules_dir = args.modules_dir
             else:
                 log.eerror("Unable to find CMake modules directory `{}'".format(_EXPECTED_CMAKE_MODULES_PATH))
                 sys.exit(1)
@@ -230,6 +261,7 @@ def main():
         # Continue to dispatch a command...
         if args.cmd == 'get':
             do_get(args.file_url)
+
 
 
 if __name__ == "__main__":
