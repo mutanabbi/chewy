@@ -13,12 +13,8 @@ to list repositorie's files by checking manifest
 
     chewy list [URL1 ...]
 
-As result you gonna see a list of
-
-    filename version description
-
-
-to add new file to your project tree or to roll back all changes of existed file to repositorie's
+As result you gonna see a list of filename, version and module description.
+To add new file to your project tree or to roll back all changes of existed file to repositorie's
 original one's condition
 
     chewy get file-URL ...
@@ -31,15 +27,13 @@ to receive newest versions of your project's files by checking a repository
 
 to check availability of newest versions of your project's files
 
-`chewy status [file-URL ...]`
+    chewy status [file-URL ...]
 
 As result you gonna see a list of
 
     U|M filename LocalVersion RemoteVersion
 
 **U** - for **U**pdate
-
 **M** - for **M**odified
-
 
 >Chewy is the best second pilot ever!
