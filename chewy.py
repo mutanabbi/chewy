@@ -187,14 +187,13 @@ def do_get(url_list):
             try:
                 ep = http_endpoint(url)
                 cs = sf.get_session(ep)
-                print (ep)
-                data = cs.retrieve_remote_file(ep.path)             # Get a remote file into string
+                data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
 
                 # Going to write just received data to the modules dir
                 o = urllib.parse.urlsplit(url)
                 os.makedirs(os.path.join(_modules_dir, os.path.dirname(o.path).strip('/')), exist_ok=True)
                 with open(os.path.join(_modules_dir, o.path.strip('/')), 'wt', encoding = 'utf-8') as f:
-                    f.write(data.decode('utf-8'))
+                    f.write(data)
                     # TODO Retrieve dependencies according manifest
                     # TODO Version compare required as well
             # TODO pass 'can't create modules dir' exception through
