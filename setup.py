@@ -9,15 +9,17 @@ import sys
 
 # this affects the names of all the directories we do stuff with
 sys.path.insert(0, './')
+import chewy
 
 distutils.core.setup(
     name             = 'chewy'
-  , version          = 0.1
+  , version          = chewy.VERSION
   , description      = 'Python script to manage CMake modules'
   , maintainer       = 'Alex Turbov'
   , maintainer_email = 'I.zaufi@gmail.com'
   , url              = 'https://github.com/mutanabbi/chewy'
-  , scripts          = ['chewy']
+  , packages         = ['chewy']
+  , scripts          = ['bin/chewy']
   , license          = 'GPL-3'
   , classifiers      = [
         'Development Status :: 4 - Beta'

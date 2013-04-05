@@ -1,0 +1,144 @@
+#!/usr/bin/env python
+#
+# -*- coding: utf-8 -*-
+#
+
+import argparse
+import portage.output
+import http.client
+import os
+import sys
+import urllib.parse
+import functools
+
+# TODO This doesn't needed for installed package
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import chewy
+
+log = portage.output.EOutput()
+
+
+# TODO Do not close connection, it can be reused later to get a module
+# TODO Use LRU cache (decorator) to obtain CHEWY session instance for particular repo
+def rcv_list(rep_url):
+    assert(rep_url)
+    ep = chewy.http_endpoint(rep_url)
+    with chewy.session_factory() as sf:
+        return sf.get_session(ep).get_manifest(os.path.join(ep.path, chewy.MANIFEST_PATH))
+
+
+def do_list(url_list):
+    '''Execute `list' command'''
+    if not url_list:
+        log.eerror('At least one repository URL should be given')
+
+    result = {}
+    for url in url_list:
+        result[url] = rcv_list(url)
+
+    # remove repository name
+    current_repo = None
+    for repo in result:
+        for rec in result[repo]:
+            if rec[0].index(repo) == 0:
+                rec[0] = rec[0].lstrip(repo)
+            else:
+                log.einfo("Manifest from the `{}' repository seem intact".format(repo))
+
+            rec[2] = urllib.parse.unquote_plus(rec[2])
+
+    for repo in result:
+        log.einfo("Modules from the `{}' repository".format(repo))
+        print(chewy.fancy_grid(result[repo]))
+
+
+
+def do_get(url_list):
+    if not url_list:
+        log.eerror('At least one url should be passed')
+
+    with chewy.session_factory() as sf:
+        for url in url_list:
+            try:
+                ep = chewy.http_endpoint(url)
+                cs = sf.get_session(ep)
+                data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
+
+                # Going to write just received data to the modules dir
+                o = urllib.parse.urlsplit(url)
+                os.makedirs(os.path.join(chewy.modules_dir, os.path.dirname(o.path).strip('/')), exist_ok=True)
+                with open(os.path.join(chewy.modules_dir, o.path.strip('/')), 'wt', encoding = 'utf-8') as f:
+                    f.write(data)
+                    # TODO Retrieve dependencies according manifest
+                    # TODO Version compare required as well
+            # TODO pass 'can't create modules dir' exception through
+            except RuntimeError as ex:
+                log.eerror("Can't get {} file: {}".format(url, ex))
+
+
+def main():
+    cmd_parser = argparse.ArgumentParser(description='Manage the project specific CMake modules')
+    cmd_parser.add_argument(
+        '-m'
+      , '--modules-dir'
+      , metavar = 'PATH'
+      , help = 'CMake modules directory to operate with'
+      )
+
+    subparsers = cmd_parser.add_subparsers(help='Available sub-commands:', dest='cmd')
+
+    list_parser = subparsers.add_parser(
+        'list'
+      , help='Repositories URI list. Empty list means to get a list of all'
+        'repositories which are founded in installed files'
+      )
+    get_parser = subparsers.add_parser(
+        'get'
+      , help='Get file from repository and add it to the project as new one'
+      )
+    update_parser = subparsers.add_parser(
+        'update'
+      , help='Update [all] installed files from their repo-sources'
+      )
+    status_parser = subparsers.add_parser('status', help='Check status of [all] installed files')
+
+    list_parser.add_argument('rep_url', metavar='REPO_URL', help='Repositories URI list', nargs='*')
+    get_parser.add_argument('file_url', metavar='FILE_URL', help='Files URI list', nargs='+')
+    update_parser.add_argument(
+        'file_url'
+      , metavar='FILE_URL'
+      , help='Files URI list. Empty list means to update all installed files'
+      , nargs='*'
+      )
+    status_parser.add_argument(
+        'file_url'
+      , metavar='FILE_URL'
+      , help='Files URI list. Empty list means to check status of all installed files'
+      , nargs='*'
+      )
+
+    args = cmd_parser.parse_args()
+
+    if args.cmd == 'list':
+        # To get a list of modules, the working directory is not required
+        do_list(args.rep_url)
+    else:
+        # Initialize working directory
+        if args.modules_dir:
+            if os.path.isdir(args.modules_dir):
+                chewy.modules_dir = args.modules_dir
+            else:
+                log.eerror("Unable to find CMake modules directory `{}'".format(chewy.EXPECTED_CMAKE_MODULES_PATH))
+                sys.exit(1)
+        else:
+            # TODO Can throw!
+            chewy.modules_dir = modules_dir_lookup()
+
+        # Continue to dispatch a command...
+        if args.cmd == 'get':
+            do_get(args.file_url)
+
+
+
+if __name__ == "__main__":
+    main()
