@@ -9,6 +9,7 @@ import http.client
 import os
 import sys
 import urllib.parse
+import functools
 
 log = portage.output.EOutput()
 
@@ -102,6 +103,7 @@ class chewy_session(object):
         '''
         self.__connection.request('GET', file_path)
         r = self.__connection.getresponse()
+        # request should be read any way if we want reuse this connection
         data = r.read()
         if r.status != http.client.OK:
             raise RuntimeError(
@@ -118,6 +120,36 @@ def rcv_list(rep_url):
     ep = http_endpoint(rep_url)
     with session_factory() as sf:
         return sf.get_session(ep).get_manifest(os.path.join(ep.path, _MANIFEST_PATH))
+
+
+
+class fancy_grid(object):
+    # TODO: Move this code to some kind of unit test
+    # t = [[55555.666, 'aaa', '20', 'aaaaaaaa', 66], [42.5, 'bbbbbbbbbbbbb', '44444', 'bb', 112], [42, 'cc', 3, 'ccc', 555555555555]]
+    # print(fancy_grid(t))
+
+    def __init__(self, table):
+        ''' Pass any sequence of sequences here '''
+        assert(hasattr(table, '__iter__') and hasattr(table[0], '__iter__'))
+        # TODO: assert all raws contains same number of fields
+
+        rows = len(table)
+        cols = len(table[0])
+
+        ## 1) get max size for columns from 1st till last - 1
+        lens = [0 for x in range(cols - 1)]
+        for i in table:
+            for n in range(cols - 1):
+                lens[n] = max(len(str(i[n])), lens[n])
+        frmt = ('{{:<{}}} ' * (cols - 1) + '{{:<}}\n').format(*lens)
+
+        print(frmt)
+        self.__s = ''
+        for i in table:
+            self.__s += frmt.format(*i)
+
+    def __str__(self):
+        return self.__s
 
 
 
@@ -145,11 +177,17 @@ def do_list(url_list):
             m = module[0]
 
         result[i] = (m, module[1], urllib.parse.unquote_plus(module[2]))
+
     # 1) get max size for 1st and 2nd columns
-    lens = [0, 0]
-    for i in result:
-        lens[0] = max(lens[0], len(i[0]))
-        lens[1] = max(lens[1], len(i[1]))
+    lens = functools.reduce(
+        lambda x, y: [
+            max(x[0], len(y[0]))
+          , max(x[1], len(y[1]))
+          ]
+      , result
+      , [0, 0]
+      )
+
     frmt = '{{:{}}}  {{:{}}}  {{}}'.format(lens[0], lens[1])
     current_repo = None
     for i, module in enumerate(result):
