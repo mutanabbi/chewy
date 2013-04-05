@@ -95,7 +95,7 @@ class chewy_session(object):
 
         # Transform a list of strings into a tuple of (URI, version, description),
         # skipping commented lines
-        return tuple(line.split() for line in contents.split('\n') if line.strip() and line[0] != '#')
+        return [line.split() for line in contents.split('\n') if line.strip() and line[0] != '#']
 
 
     def retrieve_remote_file(self, file_path):
@@ -143,7 +143,6 @@ class fancy_grid(object):
                 lens[n] = max(len(str(i[n])), lens[n])
         frmt = ('{{:<{}}} ' * (cols - 1) + '{{:<}}\n').format(*lens)
 
-        print(frmt)
         self.__s = ''
         for i in table:
             self.__s += frmt.format(*i)
@@ -158,44 +157,24 @@ def do_list(url_list):
     if not url_list:
         log.eerror('At least one repository URL should be given')
 
-    result = []
-    repos = {}
+    result = {}
     for url in url_list:
-        repos[len(result)] = url
-        result += rcv_list(url)
+        result[url] = rcv_list(url)
 
-    # TODO: Ugly implemented fancy output :). Refactor it!
-    # 0) remove repository name
+    # remove repository name
     current_repo = None
-    for i, module in enumerate(result):
-        if i in repos:
-            current_repo = repos[i]
-        if module[0].index(current_repo) == 0:
-            m = module[0].lstrip(current_repo)
-        else:
-            log.einfo("Manifest from the `{}' repository seem intact".format(current_repo))
-            m = module[0]
+    for repo in result:
+        for rec in result[repo]:
+            if rec[0].index(repo) == 0:
+                rec[0] = rec[0].lstrip(repo)
+            else:
+                log.einfo("Manifest from the `{}' repository seem intact".format(repo))
 
-        result[i] = (m, module[1], urllib.parse.unquote_plus(module[2]))
+            rec[2] = urllib.parse.unquote_plus(rec[2])
 
-    # 1) get max size for 1st and 2nd columns
-    lens = functools.reduce(
-        lambda x, y: [
-            max(x[0], len(y[0]))
-          , max(x[1], len(y[1]))
-          ]
-      , result
-      , [0, 0]
-      )
-
-    frmt = '{{:{}}}  {{:{}}}  {{}}'.format(lens[0], lens[1])
-    current_repo = None
-    for i, module in enumerate(result):
-        if i in repos:
-            current_repo = repos[i]
-            log.einfo("Modules from the `{}' repository".format(current_repo))
-
-        print(frmt.format(module[0], module[1], module[2]))
+    for repo in result:
+        log.einfo("Modules from the `{}' repository".format(repo))
+        print(fancy_grid(result[repo]))
 
 
 
