@@ -3,7 +3,7 @@ What is Chewy?
 
 Chewy is a CMake Helpers Easy Way sYnchronizer
 Chewy was deigned as a part of C++/Python projects' CMake-based build system manager.
-It allows to check versions of cmake-helpers and to keep their freshness by synchronizing
+It allows to check versions of CMake modules and to keep their freshness by synchronizing
 with a central repository, so you always have last versions of them in all of your projects.
 
 
@@ -11,7 +11,7 @@ with a central repository, so you always have last versions of them in all of yo
 
 to list repositorie's files by checking manifest
 
-`chewy list [URL1 ...]`
+    chewy list [URL1 ...]
 
 As result you gonna see a list of
 
@@ -21,12 +21,12 @@ As result you gonna see a list of
 to add new file to your project tree or to roll back all changes of existed file to repositorie's
 original one's condition
 
-`chewy get file-URL ...`
+    chewy get file-URL ...
 
 
 to receive newest versions of your project's files by checking a repository
 
-`chewy update [file-URL ...]`
+    chewy update [file-URL ...]
 
 
 to check availability of newest versions of your project's files
