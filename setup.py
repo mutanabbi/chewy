@@ -19,7 +19,7 @@ distutils.core.setup(
   , maintainer_email = 'I.zaufi@gmail.com'
   , url              = 'https://github.com/mutanabbi/chewy'
   , packages         = ['chewy']
-  , scripts          = ['bin/chewy']
+  , scripts          = ['bin/chewy', 'bin/chewy-update-manifest']
   , license          = 'GPL-3'
   , classifiers      = [
         'Development Status :: 4 - Beta'
