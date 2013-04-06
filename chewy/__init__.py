@@ -5,6 +5,8 @@
 #
 #
 
+from chewy.module import Module, NoMetaError, ModuleError
+
 import portage.output
 import http.client
 import os
