@@ -24,6 +24,15 @@ _test_case_1 = '''
 _invalid_case_1 = '''
 # X-Chewy-RepoBase: https://raw.github.com/mutanabbi/chewy-cmake-rep/master/
 '''
+_invalid_case_2 = '''
+# X-Chewy-RepoBase: https://raw.github.com/mutanabbi/chewy-cmake-rep/master/
+# X-Chewy-Path: AddBoostTests.cmake
+'''
+_invalid_case_3 = '''
+# X-Chewy-RepoBase: https://raw.github.com/mutanabbi/chewy-cmake-rep/master/
+# X-Chewy-Path: AddBoostTests.cmake
+# X-Chewy-Version: 2.0
+'''
 
 
 class ChewyModuleTester(unittest.TestCase):
@@ -44,6 +53,22 @@ class ChewyModuleTester(unittest.TestCase):
     def test_invalid_module_1(self):
         try:
             result = chewy.Module(_invalid_case_1)
+            self.assertTrue(False)
+        except chewy.ModuleError:
+            self.assertTrue(True)
+
+
+    def test_invalid_module_2(self):
+        try:
+            result = chewy.Module(_invalid_case_2)
+            self.assertTrue(False)
+        except chewy.ModuleError:
+            self.assertTrue(True)
+
+
+    def test_invalid_module_3(self):
+        try:
+            result = chewy.Module(_invalid_case_3)
             self.assertTrue(False)
         except chewy.ModuleError:
             self.assertTrue(True)

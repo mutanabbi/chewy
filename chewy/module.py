@@ -62,7 +62,7 @@ class Module(object):
 
         # Validate meta info
         for kvp in kvp_list:
-            if kvp[0] == meta.ADDONS:
+            if kvp[0] == meta.ADDON:
                 self.addons.append(kvp[1])
 
             if kvp[0] == meta.PATH:
@@ -89,6 +89,7 @@ class Module(object):
                 else:
                     raise ModuleError('Multiple {} meta'.format(meta.REPOBASE))
 
+        # Check that all attributes are here
         if self.path is None:
             raise ModuleError('Path is not defined for module')
         if self.version is None:
