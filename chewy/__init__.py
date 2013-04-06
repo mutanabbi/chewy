@@ -5,7 +5,11 @@
 #
 #
 
-from chewy.module import Module, NoMetaError, ModuleError
+from chewy.manifest import Manifest, ManifestError
+from chewy.module import Module, ModuleError
+
+class NoMetaError(RuntimeError):
+    pass
 
 import portage.output
 import http.client
