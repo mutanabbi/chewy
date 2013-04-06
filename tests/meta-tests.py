@@ -21,6 +21,9 @@ _test_case_1 = '''
 
 _test_case_2 = '''
 # X-Chewy-Test: sample
+
+some text
+
   #    X-Chewy-Test-2:    sample 2
 '''
 
