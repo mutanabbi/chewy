@@ -140,20 +140,20 @@ def main():
             for file in chewy.modules_lookup(modules_dir):
                 try:
                     with open(file, 'rt') as f:
-                        content = f.read().decode('utf-8')
-                        result.append(chewy.module(content))
+                        content = f.read()
+                        mod_list.append(chewy.Module(content))
                 except chewy.NoMetaError:
                     continue
-            for module in mod_list:
-                print(fancy_grid(
-                  [ ['A|U', m.path, m.verstion, m.description] for mod in mod_list]
-                  ))
-                # TODO: rcv manifest and check status
-                #mod.version
-                #mod.repobase
-                #mod.path
-                #mod.description
-                #mod.addons
+
+            print(chewy.fancy_grid(
+              [ ['A|U', m.path, m.version, m.description] for m in mod_list]
+              ))
+            # TODO: rcv manifest and check status
+            #mod.version
+            #mod.repobase
+            #mod.path
+            #mod.description
+            #mod.addons
 
         elif args.cmd == 'update':
             pass
