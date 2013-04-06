@@ -30,7 +30,7 @@ class Module(object):
             self.description = description
             self.path = path
             self.repobase = repobase
-            self.version = version
+            self.version = chewy.Version(version)
 
 
     def __init__(self, ctor_data):
@@ -73,7 +73,7 @@ class Module(object):
 
             if kvp[0] == meta.VERSION:
                 if self.version is None:
-                    self.version = kvp[1]
+                    self.version = chewy.Version(kvp[1])
                 else:
                     raise ModuleError('Multiple {} meta'.format(meta.VERSION))
 
