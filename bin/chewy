@@ -135,31 +135,52 @@ def main():
         if args.cmd == 'get':
             do_get(args.file_url)
         elif args.cmd == 'status':
-            mod_list = []
+            # Group installed modules by unique repobase
+            # dict<list<Modules>, status, remote_version>
+            mod_list = {}
             for file in chewy.modules_lookup(modules_dir):
                 try:
                     with open(file, 'rt') as f:
                         content = f.read()
-                        mod_list.append(chewy.Module(content))
+                        mod = chewy.Module(content)
+                        if not mod.repobase in mod_list:
+                            mod_list[mod.repobase] = []
+                        mod_list[mod.repobase].append([mod, '', None])
                 except chewy.NoMetaError:
                     continue
 
+            result = {}
+            with chewy.session_factory() as sf:
+                for rep in mod_list.keys():
+                    ep = chewy.http_endpoint(rep)
+                    result[rep] = sf.get_session(ep).get_manifest()
+
+            for repbase in mod_list:
+                for mod_status_pair in mod_list[repbase]:
+                    local_mod = mod_status_pair[0]
+                    remote_mod = next(filter(lambda x: local_mod.path == x.path, result[repbase].modules), None)
+                    if not remote_mod:
+                        mod_status_pair[1] = 'D'
+                        continue
+
+                    assert(remote_mod.path == local_mod.path)
+                    mod_status_pair[2] = remote_mod.version
+                    if remote_mod.version > local_mod.version:
+                        mod_status_pair[1] = 'U'
+                    elif local_mod.version > remote_mod.version:
+                        mod_status_pair[1] = 'M'
+                    else:
+                        # TODO: Remove from output
+                        mod_status_pair[1] = '*'
+                    continue
+
             # Group by unique repobase
-            for rep in set(m.repobase for m in mod_list):
-                log.einfo('List of {}'.format(rep))
+            for repobase in mod_list:
+                log.einfo('List of {}'.format(repobase))
                 print(chewy.fancy_grid([
-                  ['A|U', m.path, m.version, m.description]
-                  for m in mod_list if m.repobase == rep
+                  [m[1], m[0].path, m[0].version, m[2], m[0].description]
+                  for m in mod_list[repobase]
                   ]))
-
-            ##urls = set([os.path.join(m.repobase, m.path) for m in mod_list])
-            #reps = set(m.repobase for m in mod_list)
-
-            #result = {}
-            #with chewy.session_factory() as sf:
-            #    for rep in reps:
-            #        ep = chewy.http_endpoint(rep)
-            #        result[rep] = sf.get_session(ep).get_manifest()
 
             #for repo in result:
             #    log.einfo("Modules from the `{}' repository".format(repo))
