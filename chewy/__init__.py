@@ -7,6 +7,7 @@
 
 from chewy.manifest import Manifest, ManifestError
 from chewy.module import Module, ModuleError
+from chewy.version import Version, VersionError
 
 class NoMetaError(RuntimeError):
     pass
