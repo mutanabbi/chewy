@@ -27,7 +27,7 @@ class Version(object):
         except AttributeError as ex:
             raise VersionError from ex
 
-        if not (self.major and self.minor):
+        if self.major == None or self.minor == None:
             raise VersionError('Incorrect version string: {}'.format(version))
 
         if self.major > 9999:
@@ -45,4 +45,7 @@ class Version(object):
 
     def __hash__(self):
         return self.major * 10000 + self.minor
+
+    def __str__(self):
+        return '{}.{}'.format(self.major, self.minor)
 
