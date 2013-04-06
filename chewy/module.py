@@ -62,7 +62,7 @@ class Module(object):
 
         # Validate meta info
         for kvp in kvp_list:
-            if kvp[0] == meta.ADDONS:
+            if kvp[0] == meta.ADDON:
                 self.addons.append(kvp[1])
 
             if kvp[0] == meta.PATH:

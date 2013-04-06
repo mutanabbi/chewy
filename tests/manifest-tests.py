@@ -20,6 +20,10 @@ _test_case_1 = '''
 # X-Chewy-RepoBase: https://raw.github.com/mutanabbi/chewy-cmake-rep/master/
 test.cmake 2.0 sample+description
 '''
+_test_case_2 = '''
+# X-Chewy-RepoBase: https://raw.github.com/mutanabbi/chewy-cmake-rep/master/
+test.cmake 2.0 sample+description some.file another.file
+'''
 _invalid_case_1 = '''
 # X-Chewy-RepoBase: https://raw.github.com/mutanabbi/chewy-cmake-rep/master/
 '''
@@ -47,6 +51,17 @@ class ChewyModuleTester(unittest.TestCase):
         self.assertEqual(manifest.modules[0].path, 'test.cmake')
         self.assertEqual(manifest.modules[0].version, '2.0')
         self.assertEqual(manifest.modules[0].description, 'sample description')
+
+    def test_manifest_with_addons(self):
+        manifest = chewy.Manifest(_test_case_2)
+        self.assertEqual(manifest.repobase, 'https://raw.github.com/mutanabbi/chewy-cmake-rep/master/')
+        self.assertEqual(len(manifest.modules), 1)
+        self.assertEqual(manifest.modules[0].path, 'test.cmake')
+        self.assertEqual(manifest.modules[0].version, '2.0')
+        self.assertEqual(manifest.modules[0].description, 'sample description')
+        self.assertEqual(len(manifest.modules[0].addons), 2)
+        self.assertEqual(manifest.modules[0].addons[0], 'some.file')
+        self.assertEqual(manifest.modules[0].addons[1], 'another.file')
 
 
 if __name__ == '__main__':

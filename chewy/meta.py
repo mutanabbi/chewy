@@ -11,7 +11,7 @@ _X_META_REGEX = re.compile('^\s*#\s+X-Chewy-([^:]+):\s*(.*)\s*$')
 PATH = 'Path'
 VERSION = 'Version'
 DESCRIPTION = 'Description'
-ADDONS = 'Addons'
+ADDON = 'AddonFile'
 REPOBASE = 'RepoBase'
 
 def parse(file_content):
