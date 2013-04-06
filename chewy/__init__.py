@@ -93,7 +93,8 @@ class chewy_session(object):
         self.__connection.close()
 
 
-    def get_manifest(self, url):
+    def get_manifest(self):
+        url = os.path.join(self.__ep.geturl(), MANIFEST_PATH)
         log.einfo("Trying to get `{}'".format(url))
         # TODO Translate and rethrow a possible exception?
         contents = self.retrieve_remote_file(url)
@@ -124,6 +125,7 @@ class fancy_grid(object):
 
     def __init__(self, table):
         ''' Pass any sequence of sequences here '''
+        # TODO: Support generators (iterable objects of any type)
         assert(hasattr(table, '__iter__') and hasattr(table[0], '__iter__'))
         # TODO: assert all raws contains same number of fields
 

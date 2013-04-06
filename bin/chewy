@@ -27,9 +27,7 @@ def do_list(url_list):
     with chewy.session_factory() as sf:
         for url in urls:
             ep = chewy.http_endpoint(url)
-            result[url] = sf.get_session(ep).get_manifest(
-                os.path.join(ep.path, chewy.MANIFEST_PATH)
-              )
+            result[url] = sf.get_session(ep).get_manifest()
 
     # remove repository name
     current_repo = None
@@ -52,12 +50,20 @@ def do_get(url_list):
             try:
                 ep = chewy.http_endpoint(url)
                 cs = sf.get_session(ep)
+                log.einfo('Get module {}'.format(url))
                 data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
 
                 # Going to write just received data to the modules dir
                 o = urllib.parse.urlsplit(url)
-                os.makedirs(os.path.join(chewy.modules_dir, os.path.dirname(o.path).strip('/')), exist_ok=True)
-                with open(os.path.join(chewy.modules_dir, o.path.strip('/')), 'wt', encoding = 'utf-8') as f:
+                os.makedirs(
+                    os.path.join(
+                        modules_dir
+                      , os.path.dirname(o.path).strip('/')
+                      )
+                  , exist_ok=True
+                  )
+                # TODO: Strip repobasename
+                with open(os.path.join(modules_dir, o.path.strip('/')), 'wt', encoding = 'utf-8') as f:
                     f.write(data)
                     # TODO Retrieve dependencies according manifest
                     # TODO Version compare required as well
@@ -138,9 +144,26 @@ def main():
                 except chewy.NoMetaError:
                     continue
 
-            print(chewy.fancy_grid(
-              [ ['A|U', m.path, m.version, m.description] for m in mod_list]
-              ))
+            # Group by unique repobase
+            for rep in set(m.repobase for m in mod_list):
+                log.einfo('List of {}'.format(rep))
+                print(chewy.fancy_grid([
+                  ['A|U', m.path, m.version, m.description]
+                  for m in mod_list if m.repobase == rep
+                  ]))
+
+            ##urls = set([os.path.join(m.repobase, m.path) for m in mod_list])
+            #reps = set(m.repobase for m in mod_list)
+
+            #result = {}
+            #with chewy.session_factory() as sf:
+            #    for rep in reps:
+            #        ep = chewy.http_endpoint(rep)
+            #        result[rep] = sf.get_session(ep).get_manifest()
+
+            #for repo in result:
+            #    log.einfo("Modules from the `{}' repository".format(repo))
+            #    print(chewy.fancy_grid(result[repo]))
             # TODO: rcv manifest and check status
             #mod.version
             #mod.repobase
