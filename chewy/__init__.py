@@ -103,10 +103,7 @@ class chewy_session(object):
         log.einfo("Trying to get `{}'".format(url))
         # TODO Translate and rethrow a possible exception?
         contents = self.retrieve_remote_file(url)
-
-        # Transform a list of strings into a tuple of (URI, version, description),
-        # skipping commented lines
-        return [line.split() for line in contents.split('\n') if line.strip() and line[0] != '#']
+        return Manifest(contents)
 
 
     def retrieve_remote_file(self, file_path):
