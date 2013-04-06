@@ -19,7 +19,6 @@ log = portage.output.EOutput()
 
 
 # TODO Do not close connection, it can be reused later to get a module
-# TODO Use LRU cache (decorator) to obtain CHEWY session instance for particular repo
 def rcv_list(rep_url):
     assert(rep_url)
     ep = chewy.http_endpoint(rep_url)
