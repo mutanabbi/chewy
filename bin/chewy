@@ -16,32 +16,25 @@ import chewy
 log = portage.output.EOutput()
 
 
-# TODO Do not close connection, it can be reused later to get a module
-def rcv_list(rep_url):
-    assert(rep_url)
-    ep = chewy.http_endpoint(rep_url)
-    with chewy.session_factory() as sf:
-        return sf.get_session(ep).get_manifest(os.path.join(ep.path, chewy.MANIFEST_PATH))
-
-
 def do_list(url_list):
     '''Execute `list' command'''
     if not url_list:
         log.eerror('At least one repository URL should be given')
+    # Make URLs unique
+    urls = set(url_list)
 
     result = {}
-    for url in url_list:
-        result[url] = rcv_list(url)
+    with chewy.session_factory() as sf:
+        for url in urls:
+            ep = chewy.http_endpoint(url)
+            result[url] = sf.get_session(ep).get_manifest(
+                os.path.join(ep.path, chewy.MANIFEST_PATH)
+              )
 
     # remove repository name
     current_repo = None
     for repo in result:
         for rec in result[repo]:
-            if rec[0].index(repo) == 0:
-                rec[0] = rec[0].lstrip(repo)
-            else:
-                log.einfo("Manifest from the `{}' repository seem intact".format(repo))
-
             rec[2] = urllib.parse.unquote_plus(rec[2])
 
     for repo in result:
