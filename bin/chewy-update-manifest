@@ -16,10 +16,9 @@ _SCAN_RANGE = 10
 _CHEWY_REPOSITORY_DEFAULT_URL = 'https://raw.github.com/mutanabbi/chewy-cmake-rep/master/'
 _X_META_REPOBASE = '# X-Chewy-RepoBase: '
 _IGNORE_PATH = [
-    re.compile('\\.git')
+    re.compile('\\.(git|svn|hg)')
   , re.compile('README.md')
   , re.compile('manifest')
-  , re.compile('update-manifest.py')
   ]
 _URL_META = 'URL'
 _VERSION_META = 'Version'
