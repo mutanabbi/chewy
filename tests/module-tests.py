@@ -3,7 +3,7 @@
 # Some tests for Chewy module
 #
 
-""" Unit tests for chewy.module """
+""" Unit tests for chewy.Module """
 
 # Standard imports
 import os

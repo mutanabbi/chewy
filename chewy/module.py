@@ -13,7 +13,15 @@ class ModuleError(RuntimeError):
 
 
 class Module(object):
-    '''Class to represent a Chewy module'''
+    '''
+        Class to represent a Chewy module
+        contain fields (getters):
+            string repobase - repo URL and basedir
+            string path     - relative to repobase file-path
+            verstion        - string
+            description     - string
+            addons          - list<string>
+    '''
 
     class PiecewiseConstruct(object):
 

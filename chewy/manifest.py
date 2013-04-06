@@ -12,7 +12,12 @@ class ManifestError(RuntimeError):
     pass
 
 class Manifest(object):
-    '''Class to represent a Chewy module'''
+    '''
+        Class to represent a Chewy manifest
+        contains fields (getters):
+            repobase
+            modules  - list<chewy.Module>
+    '''
 
     _MIN_RECORD_FIELDS = 3
 
