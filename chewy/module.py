@@ -89,6 +89,7 @@ class Module(object):
                 else:
                     raise ModuleError('Multiple {} meta'.format(meta.REPOBASE))
 
+        # Check that all attributes are here
         if self.path is None:
             raise ModuleError('Path is not defined for module')
         if self.version is None:
