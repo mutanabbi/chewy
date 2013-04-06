@@ -4,12 +4,14 @@
 # Chewy Manifest class
 #
 
+import urllib
 import chewy
 import chewy.meta as meta
 
 
 class ManifestError(RuntimeError):
     pass
+
 
 class Manifest(object):
     '''
@@ -52,4 +54,7 @@ class Manifest(object):
             if len(record) < self._MIN_RECORD_FIELDS:       # Minumum fields: path, version, description
                 raise ManifestError('Too few fields in record at line {}'.format(line_number))
 
+            # Unescape description
+            # TODO Replace "magic number" w/ a constant
+            record[2] = urllib.parse.unquote_plus(record[2])
             self.modules.append(chewy.Module(chewy.Module.PiecewiseConstruct(self.repobase, *record)))
