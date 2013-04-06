@@ -11,9 +11,9 @@ import os
 import sys
 import urllib.parse
 import functools
+import fnmatch
 
 log = portage.output.EOutput()
-modules_dir = os.getcwd()
 
 MANIFEST_PATH = 'manifest'
 EXPECTED_CMAKE_MODULES_PATH = 'cmake/modules'
@@ -102,8 +102,7 @@ class chewy_session(object):
 
 
     def retrieve_remote_file(self, file_path):
-        '''Retrieve the file specified
-        '''
+        '''Retrieve the file specified'''
         self.__connection.request('GET', file_path)
         r = self.__connection.getresponse()
         # request should be read any way if we want reuse this connection
@@ -153,3 +152,14 @@ def modules_dir_lookup(start_path = os.getcwd()):
         else:
             start_path = os.path.dirname(start_path)
     raise RuntimeError("Unable to find CMake modules directory `{}'".format(EXPECTED_CMAKE_MODULES_PATH))
+
+
+def modules_lookup(modules_dir):
+    ''' Return: list<string> or [] '''
+    result = []
+    for root, dirs, files in os.walk(modules_dir):
+        result += [os.path.join(root, x) for x in fnmatch.filter(files, '*.cmake')]
+    return result
+
+
+

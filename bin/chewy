@@ -5,11 +5,9 @@
 
 import argparse
 import portage.output
-import http.client
 import os
 import sys
 import urllib.parse
-import functools
 
 # TODO This doesn't needed for installed package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -122,20 +120,43 @@ def main():
         # To get a list of modules, the working directory is not required
         do_list(args.rep_url)
     else:
+        global modules_dir
         # Initialize working directory
         if args.modules_dir:
             if os.path.isdir(args.modules_dir):
-                chewy.modules_dir = args.modules_dir
+                modules_dir = args.modules_dir
             else:
                 log.eerror("Unable to find CMake modules directory `{}'".format(chewy.EXPECTED_CMAKE_MODULES_PATH))
                 sys.exit(1)
         else:
             # TODO Can throw!
-            chewy.modules_dir = modules_dir_lookup()
+            modules_dir = modules_dir_lookup()
 
         # Continue to dispatch a command...
         if args.cmd == 'get':
             do_get(args.file_url)
+        elif args.cmd == 'status':
+            mod_list = []
+            for file in chewy.modules_lookup(modules_dir):
+                try:
+                    with open(file, 'rt') as f:
+                        content = f.read().decode('utf-8')
+                        result.append(chewy.module(content))
+                except chewy.NoMetaError:
+                    continue
+            for module in mod_list:
+                print(fancy_grid(
+                  [ ['A|U', m.path, m.verstion, m.description] for mod in mod_list]
+                  ))
+                # TODO: rcv manifest and check status
+                #mod.version
+                #mod.repobase
+                #mod.path
+                #mod.description
+                #mod.addons
+
+        elif args.cmd == 'update':
+            pass
 
 
 
