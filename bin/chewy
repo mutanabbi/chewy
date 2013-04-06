@@ -77,8 +77,8 @@ def main():
     cmd_parser.add_argument(
         '-m'
       , '--modules-dir'
-      , metavar = 'PATH'
-      , help = 'CMake modules directory to operate with'
+      , metavar='PATH'
+      , help='CMake modules directory to operate with'
       )
 
     subparsers = cmd_parser.add_subparsers(help='Available sub-commands:', dest='cmd')
@@ -98,17 +98,17 @@ def main():
       )
     status_parser = subparsers.add_parser('status', help='Check status of [all] installed files')
 
-    list_parser.add_argument('rep_url', metavar='REPO_URL', help='Repositories URI list', nargs='*')
-    get_parser.add_argument('file_url', metavar='FILE_URL', help='Files URI list', nargs='+')
+    list_parser.add_argument('rep_url', metavar='REPO-URL', help='Repositories URL list', nargs='*')
+    get_parser.add_argument('file_url', metavar='FILE-URL', help='Files URL list', nargs='+')
     update_parser.add_argument(
         'file_url'
-      , metavar='FILE_URL'
+      , metavar='FILE-URL'
       , help='Files URI list. Empty list means to update all installed files'
       , nargs='*'
       )
     status_parser.add_argument(
         'file_url'
-      , metavar='FILE_URL'
+      , metavar='FILE-URL'
       , help='Files URI list. Empty list means to check status of all installed files'
       , nargs='*'
       )

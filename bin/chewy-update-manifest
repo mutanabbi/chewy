@@ -5,8 +5,9 @@
 #
 #
 
-import portage.output
+import argparse
 import os
+import portage.output
 import re
 import sys
 import urllib.parse
@@ -55,31 +56,72 @@ def scanDir(base_path):
             this_level_result += scanDir(entry)
         elif os.path.isfile(entry):
             try:
-                this_level_result.append(getMetaInfo(entry))
+                mod = getMetaInfo(entry)
+                this_level_result.append(mod)
+                log.einfo('Found {} {}'.format(mod.path, mod.version))
             except chewy.NoMetaError:
                 continue
     return this_level_result
 
 
+def try_to_get_repobase_from_manifest(repo_dir):
+    manifest_filename = os.path.join(repo_dir, _MANIFEST_FILENAME)
+    log.einfo('Try to get RepoBase from {}'.format(manifest_filename))
+    if os.path.isfile(manifest_filename):
+        f = open(manifest_filename, 'rt')
+        content = f.read()
+        return chewy.Manifest(content).repobase
+    raise chewy.ManifestError('Manifest file not found or invalid: {}'.format(manifest_filename))
+
+
 def main():
+    parser = argparse.ArgumentParser(description='Update a Chewy manifest for repository.')
+    parser.add_argument(
+        'repo_url'
+      , metavar='REPO-URL'
+      , help='Repository URL. Default taken from manifest file if exists.'
+      , nargs='?'
+      )
+    parser.add_argument(
+        '-r'
+      , '--repo-dir'
+      , metavar='PATH'
+      , default=os.getcwd()
+      , help='Work copy of Chewy repository to scan. Default is a current directory.'
+      )
+    args = parser.parse_args()
+
     # Get repository base URL
-    if len(sys.argv) < 2:
-        repo_url = _CHEWY_REPOSITORY_DEFAULT_URL
+    if args.repo_url is None:
+        try:
+            repo_url = try_to_get_repobase_from_manifest(args.repo_dir)
+        except chewy.ManifestError as e:
+            log.eerror(e.args[0])
+            sys.exit(1)
     else:
         # TODO Validate URL
-        repo_url = sys.argv[1]
+        repo_url = args.repo_url
 
     log.einfo('Set repo base directory to ' + repo_url)
     # Walk through the current directory down and find all files
     modules = scanDir(os.curdir)
-    manifest = open(_MANIFEST_FILENAME, 'wt')
-    manifest.write(_X_CHEWY_REPOBASE + repo_url + '\n' + _MANIFEST_HEADER)
-    for mod in modules:
-        addons_str = ''
-        if mod.addons:
-            addons_str = ' ' + ' '.join(mod.addons)
-        description = urllib.parse.quote_plus(mod.description)
-        manifest.write(mod.path + ' ' + mod.version + ' ' + description + addons_str + '\n')
+    if len(modules):
+        manifest = open(_MANIFEST_FILENAME, 'wt')
+        manifest.write(_X_CHEWY_REPOBASE + repo_url + '\n' + _MANIFEST_HEADER)
+        for mod in modules:
+            if mod.repobase != repo_url:
+                log.ewarn(
+                    'Module {} belongs to other Chewy repository: {}'.format(mod.path, mod.repobase)
+                  )
+                log.ewarn('Skip it!')
+                continue
+            addons_str = ''
+            if mod.addons:
+                addons_str = ' ' + ' '.join(mod.addons)
+            description = urllib.parse.quote_plus(mod.description)
+            manifest.write(mod.path + ' ' + str(mod.version) + ' ' + description + addons_str + '\n')
+    else:
+        log.ewarn('No CMake modules found. Nothing to do...')
 
 
 if __name__ == '__main__':
