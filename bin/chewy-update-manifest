@@ -61,6 +61,10 @@ def scanDir(base_path):
                 log.einfo('Found {} {}'.format(mod.path, mod.version))
             except chewy.NoMetaError:
                 continue
+            except chewy.ModuleError as e:
+                log.ewarn('Module {} loading failure: {}'.format(entry, e.args[0]))
+                log.ewarn('Skip it!')
+                continue
     return this_level_result
 
 
