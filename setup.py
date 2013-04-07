@@ -20,8 +20,6 @@ distutils.core.setup(
   , url              = 'https://github.com/mutanabbi/chewy'
   , packages         = ['chewy']
   , scripts          = ['bin/chewy', 'bin/chewy-update-manifest']
-    # TODO Is there any better way to determine a $dataroot_dir??
-  , data_files       = [('share/doc/chewy-{}'.format(chewy.VERSION), ['AUTHORS', 'README.md', 'LICENSE'])]
   , license          = 'GPL-3'
   , classifiers      = [
         'Development Status :: 4 - Beta'
