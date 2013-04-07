@@ -139,7 +139,7 @@ class fancy_grid(object):
         for i in table:
             for n in range(cols - 1):
                 lens[n] = max(len(str(i[n])), lens[n])
-        frmt = ('{{:<{}}} ' * (cols - 1) + '{{:<}}\n').format(*lens)
+        frmt = ('{{:<{}}}  ' * (cols - 1) + ' {{:<}}\n').format(*lens)
 
         self.__s = ''
         for i in table:
@@ -166,6 +166,3 @@ def modules_lookup(modules_dir):
     for root, dirs, files in os.walk(modules_dir):
         result += [os.path.join(root, x) for x in fnmatch.filter(files, '*.cmake')]
     return result
-
-
-

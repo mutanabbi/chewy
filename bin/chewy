@@ -16,6 +16,8 @@ import chewy
 log = portage.output.EOutput()
 
 
+# TODO If no repo given, try to find a modules base,
+# scan it and collect used repo bases...?
 def do_list(url_list):
     '''Execute `list' command'''
     if not url_list:
@@ -27,21 +29,18 @@ def do_list(url_list):
     with chewy.session_factory() as sf:
         for url in urls:
             ep = chewy.http_endpoint(url)
-            result[url] = sf.get_session(ep).get_manifest()
-
-    # remove repository name
-    current_repo = None
-    for repo in result:
-        for rec in result[repo]:
-            rec[2] = urllib.parse.unquote_plus(rec[2])
+            result[url] = sf.get_session(ep).get_manifest().modules
 
     for repo in result:
         log.einfo("Modules from the `{}' repository".format(repo))
-        print(chewy.fancy_grid(result[repo]))
+        mod_info = []
+        for mod in result[repo]:
+            mod_info.append((mod.path, mod.version, mod.description))
+        print(chewy.fancy_grid(mod_info))
 
 
 
-def do_get(url_list):
+def do_get(url_list, modules_dir):
     if not url_list:
         log.eerror('At least one url should be passed')
 
@@ -71,6 +70,54 @@ def do_get(url_list):
             except RuntimeError as ex:
                 log.eerror("Can't get {} file: {}".format(url, ex))
 
+
+def do_status(modules_dir):
+    # Group installed modules by unique repobase
+    # dict<list<Modules>, status, remote_version>
+    mod_list = {}
+    for file in chewy.modules_lookup(modules_dir):
+        try:
+            with open(file, 'rt') as f:
+                content = f.read()
+                mod = chewy.Module(content)
+                if not mod.repobase in mod_list:
+                    mod_list[mod.repobase] = []
+                mod_list[mod.repobase].append([mod, '', None])
+        except chewy.NoMetaError:
+            continue
+
+    result = {}
+    with chewy.session_factory() as sf:
+        for rep in mod_list.keys():
+            ep = chewy.http_endpoint(rep)
+            result[rep] = sf.get_session(ep).get_manifest()
+
+    for repbase in mod_list:
+        for mod_status_pair in mod_list[repbase]:
+            local_mod = mod_status_pair[0]
+            remote_mod = next(filter(lambda x: local_mod.path == x.path, result[repbase].modules), None)
+            if not remote_mod:
+                mod_status_pair[1] = ' D '
+                continue
+
+            assert(remote_mod.path == local_mod.path)
+            mod_status_pair[2] = remote_mod.version
+            if remote_mod.version > local_mod.version:
+                mod_status_pair[1] = ' U '
+            elif local_mod.version > remote_mod.version:
+                mod_status_pair[1] = ' M '
+            else:
+                # TODO: Remove from output
+                mod_status_pair[1] = ' * '
+            continue
+
+    # Group by unique repobase
+    for repobase in mod_list:
+        log.einfo('List of {}'.format(repobase))
+        print(chewy.fancy_grid([
+            [m[1], m[0].path, m[0].version, m[2], m[0].description]
+            for m in mod_list[repobase]
+            ]))
 
 def main():
     cmd_parser = argparse.ArgumentParser(description='Manage the project specific CMake modules')
@@ -119,7 +166,6 @@ def main():
         # To get a list of modules, the working directory is not required
         do_list(args.rep_url)
     else:
-        global modules_dir
         # Initialize working directory
         if args.modules_dir:
             if os.path.isdir(args.modules_dir):
@@ -129,69 +175,13 @@ def main():
                 sys.exit(1)
         else:
             # TODO Can throw!
-            modules_dir = modules_dir_lookup()
+            modules_dir = chewy.modules_dir_lookup()
 
         # Continue to dispatch a command...
         if args.cmd == 'get':
-            do_get(args.file_url)
+            do_get(args.file_url, modules_dir)
         elif args.cmd == 'status':
-            # Group installed modules by unique repobase
-            # dict<list<Modules>, status, remote_version>
-            mod_list = {}
-            for file in chewy.modules_lookup(modules_dir):
-                try:
-                    with open(file, 'rt') as f:
-                        content = f.read()
-                        mod = chewy.Module(content)
-                        if not mod.repobase in mod_list:
-                            mod_list[mod.repobase] = []
-                        mod_list[mod.repobase].append([mod, '', None])
-                except chewy.NoMetaError:
-                    continue
-
-            result = {}
-            with chewy.session_factory() as sf:
-                for rep in mod_list.keys():
-                    ep = chewy.http_endpoint(rep)
-                    result[rep] = sf.get_session(ep).get_manifest()
-
-            for repbase in mod_list:
-                for mod_status_pair in mod_list[repbase]:
-                    local_mod = mod_status_pair[0]
-                    remote_mod = next(filter(lambda x: local_mod.path == x.path, result[repbase].modules), None)
-                    if not remote_mod:
-                        mod_status_pair[1] = 'D'
-                        continue
-
-                    assert(remote_mod.path == local_mod.path)
-                    mod_status_pair[2] = remote_mod.version
-                    if remote_mod.version > local_mod.version:
-                        mod_status_pair[1] = 'U'
-                    elif local_mod.version > remote_mod.version:
-                        mod_status_pair[1] = 'M'
-                    else:
-                        # TODO: Remove from output
-                        mod_status_pair[1] = '*'
-                    continue
-
-            # Group by unique repobase
-            for repobase in mod_list:
-                log.einfo('List of {}'.format(repobase))
-                print(chewy.fancy_grid([
-                  [m[1], m[0].path, m[0].version, m[2], m[0].description]
-                  for m in mod_list[repobase]
-                  ]))
-
-            #for repo in result:
-            #    log.einfo("Modules from the `{}' repository".format(repo))
-            #    print(chewy.fancy_grid(result[repo]))
-            # TODO: rcv manifest and check status
-            #mod.version
-            #mod.repobase
-            #mod.path
-            #mod.description
-            #mod.addons
-
+            do_status(modules_dir)
         elif args.cmd == 'update':
             pass
 
