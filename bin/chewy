@@ -26,9 +26,9 @@ def do_list(url_list):
     urls = set(url_list)
 
     result = {}
-    with chewy.session_factory() as sf:
+    with chewy.SessionFactory() as sf:
         for url in urls:
-            ep = chewy.http_endpoint(url)
+            ep = chewy.HttpEndpoint(url)
             result[url] = sf.get_session(ep).get_manifest().modules
 
     for repo in result:
@@ -36,7 +36,7 @@ def do_list(url_list):
         mod_info = []
         for mod in result[repo]:
             mod_info.append((mod.path, mod.version, mod.description))
-        print(chewy.fancy_grid(mod_info))
+        print(chewy.FancyGrid(mod_info))
 
 
 
@@ -44,10 +44,10 @@ def do_get(url_list, modules_dir):
     if not url_list:
         log.eerror('At least one url should be passed')
 
-    with chewy.session_factory() as sf:
+    with chewy.SessionFactory() as sf:
         for url in url_list:
             try:
-                ep = chewy.http_endpoint(url)
+                ep = chewy.HttpEndpoint(url)
                 cs = sf.get_session(ep)
                 log.einfo('Get module {}'.format(url))
                 data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
@@ -87,9 +87,9 @@ def do_status(modules_dir):
             continue
 
     result = {}
-    with chewy.session_factory() as sf:
+    with chewy.SessionFactory() as sf:
         for rep in mod_list.keys():
-            ep = chewy.http_endpoint(rep)
+            ep = chewy.HttpEndpoint(rep)
             result[rep] = sf.get_session(ep).get_manifest()
 
     for repbase in mod_list:
@@ -114,7 +114,7 @@ def do_status(modules_dir):
     # Group by unique repobase
     for repobase in mod_list:
         log.einfo('List of {}'.format(repobase))
-        print(chewy.fancy_grid([
+        print(chewy.FancyGrid([
             [m[1], m[0].path, m[0].version, m[2], m[0].description]
             for m in mod_list[repobase]
             ]))

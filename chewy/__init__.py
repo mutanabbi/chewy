@@ -35,17 +35,17 @@ _HEADERS = {
 
 
 
-class http_endpoint(urllib.parse.SplitResult):
+class HttpEndpoint(urllib.parse.SplitResult):
     ''' Class to represent a HTTP endpoint to contact'''
 
     is_ssl = False
 
     def __new__(cls, url):
-        return super(http_endpoint, cls).__new__(cls, *urllib.parse.urlsplit(url))
+        return super(HttpEndpoint, cls).__new__(cls, *urllib.parse.urlsplit(url))
 
     def __init__(self, url):
         '''Parse the URL given and construct an endpoint instance'''
-        super(http_endpoint, self).__init__(urllib.parse.urlsplit(url))
+        super(HttpEndpoint, self).__init__(urllib.parse.urlsplit(url))
         self.url = url
         if self.scheme == 'http':
             self.is_ssl = False
@@ -56,7 +56,7 @@ class http_endpoint(urllib.parse.SplitResult):
 
 
 
-class session_factory(object):
+class SessionFactory(object):
     def __init__(self):
         self.__cp = {}
 
@@ -72,18 +72,18 @@ class session_factory(object):
         if key in self.__cp:
             return self.__cp[key]
         else:
-            cs = chewy_session(ep)
+            cs = ChewySession(ep)
             self.__cp[key] = cs
             return cs
 
 
 
-class chewy_session(object):
+class ChewySession(object):
     '''Class to access a remote CHEWY repository'''
 
     def __init__(self, endpoint):
         '''Connect the endpoint given and be ready for files transfer'''
-        if not isinstance(endpoint, http_endpoint):
+        if not isinstance(endpoint, HttpEndpoint):
             raise TypeError('Endpoint to contact has invalid type')
 
         self.__ep = endpoint
@@ -120,10 +120,10 @@ class chewy_session(object):
 
 
 
-class fancy_grid(object):
+class FancyGrid(object):
     # TODO: Move this code to some kind of unit test
     # t = [[55555.666, 'aaa', '20', 'aaaaaaaa', 66], [42.5, 'bbbbbbbbbbbbb', '44444', 'bb', 112], [42, 'cc', 3, 'ccc', 555555555555]]
-    # print(fancy_grid(t))
+    # print(FancyGrid(t))
 
     def __init__(self, table):
         ''' Pass any sequence of sequences here '''

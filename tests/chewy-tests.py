@@ -16,7 +16,7 @@ sys.path.append('..')
 import chewy
 
 
-class chewy_tester(unittest.TestCase):
+class ChewyTester(unittest.TestCase):
     '''Unit tests for [???]'''
 
     def setUp(self):
@@ -28,7 +28,7 @@ class chewy_tester(unittest.TestCase):
 
 if __name__ == '__main__':
 #    unittest.main()
-    suite = unittest.TestLoader().loadTestsFromTestCase(chewy_tester)
+    suite = unittest.TestLoader().loadTestsFromTestCase(ChewyTester)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     if result.wasSuccessful() != True:
         sys.exit(1)
