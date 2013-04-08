@@ -41,6 +41,7 @@ def do_list(url_list):
 
 
 def do_get(url_list, modules_dir):
+    '''Execute `get' command'''
     if not url_list:
         log.eerror('At least one url should be passed')
 
@@ -71,53 +72,61 @@ def do_get(url_list, modules_dir):
                 log.eerror("Can't get {} file: {}".format(url, ex))
 
 
+
 def do_status(modules_dir):
-    # Group installed modules by unique repobase
-    # dict<list<Modules>, status, remote_version>
-    mod_list = {}
-    for file in chewy.modules_lookup(modules_dir):
-        try:
-            with open(file, 'rt') as f:
-                content = f.read()
-                mod = chewy.Module(content)
-                if not mod.repobase in mod_list:
-                    mod_list[mod.repobase] = []
-                mod_list[mod.repobase].append([mod, '', None])
-        except chewy.NoMetaError:
-            continue
+    '''Execute `status' command'''
 
-    result = {}
+    # Get modules installed in a given dir
+    repomod_map = chewy.collect_installed_modules(modules_dir)
+
+    # Retrieve manifests for all used chewy repositories
+    manifests = {}
     with chewy.SessionFactory() as sf:
-        for rep in mod_list.keys():
-            ep = chewy.HttpEndpoint(rep)
-            result[rep] = sf.get_session(ep).get_manifest()
+        for repobase in repomod_map.keys():
+            if repobase not in manifests:                   # Manifest still not retrieved
+                ep = chewy.HttpEndpoint(repobase)
+                manifests[repobase] = sf.get_session(ep).get_manifest()
 
-    for repbase in mod_list:
-        for mod_status_pair in mod_list[repbase]:
-            local_mod = mod_status_pair[0]
-            remote_mod = next(filter(lambda x: local_mod.path == x.path, result[repbase].modules), None)
+    # Iterate over installed modules (statues actually) grouped by repository
+    for repobase, modules in repomod_map.items():
+        # Iterate over list of module statuses
+        for status in modules:
+            local_mod = status.module
+            # Find local module in a remote repository
+            remote_mod = next(
+                filter(lambda x: local_mod.path == x.path, manifests[repobase].modules)
+              , None
+              )
+            # If not found, mark current module as deleted
             if not remote_mod:
-                mod_status_pair[1] = ' D '
-                continue
-
-            assert(remote_mod.path == local_mod.path)
-            mod_status_pair[2] = remote_mod.version
-            if remote_mod.version > local_mod.version:
-                mod_status_pair[1] = ' U '
-            elif local_mod.version > remote_mod.version:
-                mod_status_pair[1] = ' M '
+                status.set_remote_version(None)
             else:
-                # TODO: Remove from output
-                mod_status_pair[1] = ' * '
-            continue
+                assert(remote_mod.path == local_mod.path)
+                # Remember the remote version
+                status.set_remote_version(remote_mod.version)
 
     # Group by unique repobase
-    for repobase in mod_list:
+    for repobase in repomod_map:
         log.einfo('List of {}'.format(repobase))
-        print(chewy.FancyGrid([
-            [m[1], m[0].path, m[0].version, m[2], m[0].description]
-            for m in mod_list[repobase]
-            ]))
+        # TODO Colorise output (especially new versions)
+        print(
+            chewy.FancyGrid([
+                [
+                    m.status_as_string()
+                  , m.module.path
+                  , m.module.version
+                  , m.available_version()
+                  , m.module.description
+                ]
+                for m in repomod_map[repobase]
+              ])
+          )
+
+
+def do_update(modules_dir):
+    '''Execute `update' command'''
+    pass
+
 
 def main():
     cmd_parser = argparse.ArgumentParser(description='Manage the project specific CMake modules')
@@ -174,8 +183,11 @@ def main():
                 log.eerror("Unable to find CMake modules directory `{}'".format(chewy.EXPECTED_CMAKE_MODULES_PATH))
                 sys.exit(1)
         else:
-            # TODO Can throw!
-            modules_dir = chewy.modules_dir_lookup()
+            try:
+                modules_dir = chewy.modules_dir_lookup()
+            except RuntimeError as e:
+                log.eerror(e.args[0])
+                sys.exit(1)
 
         # Continue to dispatch a command...
         if args.cmd == 'get':
@@ -183,8 +195,10 @@ def main():
         elif args.cmd == 'status':
             do_status(modules_dir)
         elif args.cmd == 'update':
-            pass
+            do_update(modules_dir)
 
+    # Done!
+    sys.exit(0)
 
 
 if __name__ == "__main__":
