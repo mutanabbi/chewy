@@ -32,6 +32,12 @@ class Module(object):
             self.repobase = repobase
             self.version = chewy.Version(version)
 
+    def __eq__ (self, other):
+        '''
+            Module is equal comparable, but note It isn't depended from module version
+        '''
+        return (self.repobase, self.path) == (other.repobase, other.path)
+
 
     def __init__(self, ctor_data):
         ''' Make a module from file content
@@ -98,3 +104,5 @@ class Module(object):
             raise ModuleError('Description is not defined for module')
         if self.repobase is None:
             raise ModuleError('RepoBase is not defined for module')
+
+

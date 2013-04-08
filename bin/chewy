@@ -27,6 +27,7 @@ def rcv_manifests(repobase_list):
     return manifest_map
 
 
+
 # TODO If no repo given, try to find a modules base,
 # scan it and collect used repo bases...?
 def do_list(url_list):
@@ -36,12 +37,10 @@ def do_list(url_list):
     # Make URLs unique
     urls = set(url_list)
 
-    manifest_map = rcv_manifests(urls)
-
-    for repo in manifest_map:
-        log.einfo("Modules from the `{}' repository".format(repo))
+    for repobase, manifest in rcv_manifests(urls).items():
+        log.einfo("Modules from the `{}' repository".format(repobase))
         print(chewy.FancyGrid(
-            [ [mod.path, mod.version, mod.description] for mod in manifest_map[repo].modules ]
+            [ [mod.path, mod.version, mod.description] for mod in manifest.modules ]
           ))
 
 
@@ -82,21 +81,18 @@ def do_status(modules_dir):
     '''Execute `status' command'''
 
     # Get modules installed in a given dir
-    local_modules_map = chewy.collect_installed_modules(modules_dir)
+    status_map = chewy.collect_installed_modules(modules_dir)
 
     # Retrieve remote_modules_map for all used chewy repositories
-    manifests_map = rcv_manifests(local_modules_map.keys())
+    manifests_map = rcv_manifests(status_map.keys())
 
-    # Iterate over installed modules (statues actually) grouped by repository
-    for repobase, modules in local_modules_map.items():
+    # Iterate over installed modules (statuses actually) grouped by repository
+    for repobase, modules in status_map.items():
         # Iterate over list of module statuses
         for status in modules:
             local_mod = status.module
             # Find local module in a remote repository
-            remote_mod = next(
-                filter(lambda x: local_mod.path == x.path, manifests_map[repobase].modules)
-              , None
-              )
+            remote_mod = chewy.find(manifests_map[repobase].modules, lambda x: x.path == local_mod.path)
             # If not found, mark current module as deleted
             if not remote_mod:
                 status.set_remote_version(None)
@@ -106,7 +102,7 @@ def do_status(modules_dir):
                 status.set_remote_version(remote_mod.version)
 
     # Group by unique repobase
-    for repobase in local_modules_map:
+    for repobase in status_map:
         log.einfo('List of {}'.format(repobase))
         # TODO Colorise output (especially new versions)
         print(
@@ -118,7 +114,7 @@ def do_status(modules_dir):
                   , m.available_version()
                   , m.module.description
                 ]
-                for m in local_modules_map[repobase]
+                for m in status_map[repobase]
               ])
           )
 
@@ -127,10 +123,29 @@ def do_update(modules_dir):
     '''Execute `update' command'''
 
     # Get modules installed in a given dir
-    local_modules_map = chewy.collect_installed_modules(modules_dir)
+    status_map = chewy.collect_installed_modules(modules_dir)
 
     # Retrieve remote_modules_map for all used chewy repositories
-    manifest_map = rcv_manifests(local_modules_map.keys())
+    manifest_map = rcv_manifests(status_map.keys())
+
+    assert(
+        'We expect to receive same number of manifests as different repositories we are subscribed to'
+        'Or less if some error during receiving occured'
+       and len(status_map) >= len(manifest_map)
+      )
+
+    for repobase in status_map:
+        log.einfo('Updating {} repository'.format(repobase))
+        # TODO: Check we didn't fault some manifests receiving by network problems
+        assert(repobase in manifest_map)
+        matched_modules = [ mod.module for mod in status_map[repobase] if mod.module in manifest_map[repobase].modules ]
+
+        try:
+            pass
+        except RuntimeError as ex:
+            log.einfo('Error: {}'.format(ex))
+            continue
+
 
 
 

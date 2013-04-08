@@ -235,3 +235,9 @@ def collect_installed_modules(modules_dir):
             continue
     return mod_list
 
+
+def find(seq, pred):
+    return next(
+        filter(lambda x: pred(x), seq)
+      , None
+      )
