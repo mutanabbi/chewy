@@ -103,7 +103,9 @@ class ChewySession(object):
         log.einfo("Trying to get `{}'".format(url))
         # TODO Translate and rethrow a possible exception?
         contents = self.retrieve_remote_file(url)
-        return Manifest(contents)
+        manifest = Manifest(contents)
+        assert('We expect the repobase is a part of URL' and manifest.repobase.startswith(self.__ep.geturl()))
+        return manifest
 
 
     def retrieve_remote_file(self, file_path):

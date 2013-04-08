@@ -16,6 +16,17 @@ import chewy
 log = portage.output.EOutput()
 
 
+def rcv_manifests(repobase_list):
+    # Retrieve manifests for all used chewy repositories
+    manifest_map = {}
+    with chewy.SessionFactory() as sf:
+        for repobase in repobase_list:
+            if repobase not in manifest_map:                   # Manifest still not retrieved
+                ep = chewy.HttpEndpoint(repobase)
+                manifest_map[repobase] = sf.get_session(ep).get_manifest()
+    return manifest_map
+
+
 # TODO If no repo given, try to find a modules base,
 # scan it and collect used repo bases...?
 def do_list(url_list):
@@ -25,18 +36,13 @@ def do_list(url_list):
     # Make URLs unique
     urls = set(url_list)
 
-    result = {}
-    with chewy.SessionFactory() as sf:
-        for url in urls:
-            ep = chewy.HttpEndpoint(url)
-            result[url] = sf.get_session(ep).get_manifest().modules
+    manifest_map = rcv_manifests(urls)
 
-    for repo in result:
+    for repo in manifest_map:
         log.einfo("Modules from the `{}' repository".format(repo))
-        mod_info = []
-        for mod in result[repo]:
-            mod_info.append((mod.path, mod.version, mod.description))
-        print(chewy.FancyGrid(mod_info))
+        print(chewy.FancyGrid(
+            [ [mod.path, mod.version, mod.description] for mod in manifest_map[repo].modules ]
+          ))
 
 
 
@@ -72,29 +78,23 @@ def do_get(url_list, modules_dir):
                 log.eerror("Can't get {} file: {}".format(url, ex))
 
 
-
 def do_status(modules_dir):
     '''Execute `status' command'''
 
     # Get modules installed in a given dir
-    repomod_map = chewy.collect_installed_modules(modules_dir)
+    local_modules_map = chewy.collect_installed_modules(modules_dir)
 
-    # Retrieve manifests for all used chewy repositories
-    manifests = {}
-    with chewy.SessionFactory() as sf:
-        for repobase in repomod_map.keys():
-            if repobase not in manifests:                   # Manifest still not retrieved
-                ep = chewy.HttpEndpoint(repobase)
-                manifests[repobase] = sf.get_session(ep).get_manifest()
+    # Retrieve remote_modules_map for all used chewy repositories
+    manifests_map = rcv_manifests(local_modules_map.keys())
 
     # Iterate over installed modules (statues actually) grouped by repository
-    for repobase, modules in repomod_map.items():
+    for repobase, modules in local_modules_map.items():
         # Iterate over list of module statuses
         for status in modules:
             local_mod = status.module
             # Find local module in a remote repository
             remote_mod = next(
-                filter(lambda x: local_mod.path == x.path, manifests[repobase].modules)
+                filter(lambda x: local_mod.path == x.path, manifests_map[repobase].modules)
               , None
               )
             # If not found, mark current module as deleted
@@ -106,7 +106,7 @@ def do_status(modules_dir):
                 status.set_remote_version(remote_mod.version)
 
     # Group by unique repobase
-    for repobase in repomod_map:
+    for repobase in local_modules_map:
         log.einfo('List of {}'.format(repobase))
         # TODO Colorise output (especially new versions)
         print(
@@ -118,14 +118,20 @@ def do_status(modules_dir):
                   , m.available_version()
                   , m.module.description
                 ]
-                for m in repomod_map[repobase]
+                for m in local_modules_map[repobase]
               ])
           )
 
 
 def do_update(modules_dir):
     '''Execute `update' command'''
-    pass
+
+    # Get modules installed in a given dir
+    local_modules_map = chewy.collect_installed_modules(modules_dir)
+
+    # Retrieve remote_modules_map for all used chewy repositories
+    manifest_map = rcv_manifests(local_modules_map.keys())
+
 
 
 def main():
