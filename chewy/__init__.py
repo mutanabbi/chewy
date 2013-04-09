@@ -5,6 +5,7 @@
 #
 #
 
+
 from chewy.manifest import Manifest, ManifestError
 from chewy.module import Module, ModuleError
 from chewy.version import Version, VersionError
@@ -12,14 +13,16 @@ from chewy.session import Session
 from chewy.session import HttpEndpoint
 from chewy.fancy_grid import FancyGrid
 
-class NoMetaError(RuntimeError):
-    pass
-
+import shutil
 import os
 import fnmatch
 
 EXPECTED_CMAKE_MODULES_PATH = 'cmake/modules'
 VERSION="0.1"
+
+
+class NoMetaError(RuntimeError):
+    pass
 
 
 def modules_dir_lookup(start_path = os.getcwd()):
@@ -114,3 +117,37 @@ def find(seq, pred):
         filter(lambda x: pred(x), seq)
       , None
       )
+
+
+class PathError(RuntimeError):
+    pass
+
+
+# TODO: unittests
+def sandbox_path(prefix, path):
+    assert(
+        'We expect prefix is an absolute path in the function by security reason'
+        and prefix == os.path.abspath(prefix)
+      )
+    abspath = os.path.abspath(os.path.join(prefix, path))
+    if not abspath.startswith(prefix):
+        raise PathError(
+            'Relative pathname {} trying to pass the sandbox {}'.format(path, abspath)
+          )
+    return abspath
+
+
+# TODO: unittests
+def copytree(src, dst, symlinks=False, ignore=None):
+    '''
+        shutil.copytree can't copy to existed destenition. We need the own analogue
+    '''
+    assert(src and dst)
+    for path, dirs, files in os.walk(src, topdown=True):
+        base = path[ len(src) if path.startswith(src) else 0 : ].strip('/')
+        for d in dirs:
+            os.mkdir(os.path.join(dst, base, d))
+        for f in files:
+            shutil.copy(os.path.join(path, f), os.path.join(dst, base, f))
+
+

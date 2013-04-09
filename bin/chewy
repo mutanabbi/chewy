@@ -15,41 +15,10 @@ import argparse
 import portage.output
 import urllib.parse
 import tempfile
-import shutil
 
 
 
 log = portage.output.EOutput()
-
-class PathError(RuntimeError):
-    pass
-
-
-def sandbox_path(prefix, path):
-    assert(
-        'We expect prefix is an absolute path in the function by security reason'
-        and prefix == os.path.abspath(prefix)
-      )
-    abspath = os.path.abspath(os.path.join(prefix, path))
-    if not abspath.startswith(prefix):
-        raise PathError(
-            'Relative pathname {} trying to pass the sandbox {}'.format(path, abspath)
-          )
-    return abspath
-
-
-# TODO: shutil.copytree can't copy to existed destenition. We need the own analogue
-#def copytree(src, dst, symlinks=False, ignore=None):
-#    for item in os.listdir(src):
-#        if os.path.
-#        for i in os.listdir(dst):
-#            s = os.path.join(src, item)
-#            d = os.path.join(dst, item)
-#            if os.path.isdir(s):
-#                shutil.copytree(s, d, symlinks, ignore, copy_function=shutil.copy)
-#            else:
-#                shutil.copy(s, d)
-
 
 def uninstall(modules_dir, mod):
     '''
@@ -57,7 +26,7 @@ def uninstall(modules_dir, mod):
         Note uninstall doesn't clean empty directories possible after uninstall process
     '''
     for path in [ os.path.join(modules_dir, f) for f in mod.addons ]:
-        abspath = sandbox_path(modules_dir, path)
+        abspath = chewy.sandbox_path(modules_dir, path)
         if os.path.exists(abspath):
             os.unlink(abspath)
 
@@ -90,17 +59,27 @@ def do_list(url_list):
           ))
 
 
-def rcv_module(mod, modules_dir, sf, uninst=False):
+def rcv_module(url, modules_dir, sf, uninst=False):
+    # Doesn't catch any exception because any error means module receiving is fall
+    ep = chewy.HttpEndpoint(url)
+    cs = sf.get_session(ep)
+    log.einfo('Get module file {}'.format(url))
+    data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
+    mod = chewy.Module(data)
+
     with tempfile.TemporaryDirectory() as tmpdirname:
-        # Doesn't catch any exception because any error means module receiving is fall
+        # Write module to file
+        with open(chewy.sandbox_path(tmpdirname, mod.path), 'wt', encoding = 'utf-8') as f:
+            f.write(data)
+        # Receive all module-related files
         for relpath in mod.addons:
             url = os.path.join(mod.repobase, relpath)
             ep = chewy.HttpEndpoint(url)
             cs = sf.get_session(ep)
-            log.einfo('Get file {}'.format(url))
+            log.einfo('Get addon file  {}'.format(url))
             data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
 
-            abs_tmp_path = sandbox_path(tmpdirname, relpath)
+            abs_tmp_path = chewy.sandbox_path(tmpdirname, relpath)
 
             # Create necessary temporary directorie's sub tree
             os.makedirs(
@@ -113,9 +92,11 @@ def rcv_module(mod, modules_dir, sf, uninst=False):
             with open(abs_tmp_path, 'wt', encoding = 'utf-8') as f:
                 f.write(data)
                 # TODO: Version compare is required as well. Is it?
-        if not uninst:
+        if uninst:
             uninstall(modules_dir, mod)
-        shutil.copytree(tmpdirname, modules_dir)
+
+        # If success, install module to real modules path
+        chewy.copytree(tmpdirname, modules_dir)
 
 
 def do_get(url_list, modules_dir):
@@ -126,12 +107,7 @@ def do_get(url_list, modules_dir):
     with chewy.session.Factory() as sf:
         for url in url_list:
             try:
-                ep = chewy.HttpEndpoint(url)
-                cs = sf.get_session(ep)
-                log.einfo('Get module {}'.format(url))
-                data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
-                mod = chewy.Module(data)
-                rcv_module(mod, modules_dir, sf)
+                rcv_module(url, modules_dir, sf)
 
             # TODO pass 'can't create modules dir' exception through
             except RuntimeError as ex:
