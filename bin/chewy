@@ -27,8 +27,9 @@ def uninstall(modules_dir, mod):
         Uninstall the chewy module and all related files
         Note uninstall doesn't clean empty directories possible after uninstall process
     '''
-    for path in [ os.path.join(modules_dir, f) for f in mod.addons ]:
+    for path in [ os.path.join(modules_dir, f) for f in mod.addons + [mod.path] ]:
         abspath = chewy.sandbox_path(modules_dir, path)
+        # TODO: os.path.exists returns False for zero-sized files
         if os.path.exists(abspath):
             os.unlink(abspath)
 
@@ -45,7 +46,16 @@ def rcv_manifests(repobase_list):
 
 
 
-def rcv_module(url, modules_dir, sf, uninst=False):
+def rcv_module(obj, modules_dir, sf):
+    # "Overloading" by first argument
+    if isinstance(obj, chewy.Module):
+        local_module = obj
+        url = os.path.join(local_module.repobase, local_module.path)
+    elif isinstance(obj, str):
+        url = obj
+    else:
+        assert(False)
+
     # Doesn't catch any exception because any error means module receiving is fall
     ep = chewy.HttpEndpoint(url)
     cs = sf.get_session(ep)
@@ -78,8 +88,8 @@ def rcv_module(url, modules_dir, sf, uninst=False):
             with open(abs_tmp_path, 'wt', encoding = 'utf-8') as f:
                 f.write(data)
                 # TODO: Version compare is required as well. Is it?
-        if uninst:
-            uninstall(modules_dir, mod)
+        if local_module:
+            uninstall(modules_dir, local_module)
 
         # If success, install module to real modules path
         chewy.copytree(tmpdirname, modules_dir)
@@ -171,12 +181,9 @@ def do_update(modules_dir):
     '''Execute `update' command'''
     with chewy.session.Factory() as sf:
         for repobase, status_list in get_statuses(modules_dir).items():
-            for url in [
-                os.path.join(st.module.repobase, st.module.path)
-                for st in status_list if st.needs_update()
-              ]:
+            for mod in [ st.module for st in status_list if st.needs_update() ]:
                 try:
-                    rcv_module(url, modules_dir, sf)
+                    rcv_module(mod, modules_dir, sf)
                 # TODO pass 'can't create modules dir' exception through
                 except RuntimeError as ex:
                     log.eerror("Can't update module {}: {}".format(url, ex))
