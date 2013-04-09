@@ -12,6 +12,7 @@ import urllib.parse
 # TODO This doesn't needed for installed package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import chewy
+import chewy.session
 
 log = portage.output.EOutput()
 
@@ -19,7 +20,7 @@ log = portage.output.EOutput()
 def rcv_manifests(repobase_list):
     # Retrieve manifests for all used chewy repositories
     manifest_map = {}
-    with chewy.SessionFactory() as sf:
+    with chewy.session.Factory() as sf:
         for repobase in repobase_list:
             if repobase not in manifest_map:                   # Manifest still not retrieved
                 ep = chewy.HttpEndpoint(repobase)
@@ -50,7 +51,7 @@ def do_get(url_list, modules_dir):
     if not url_list:
         log.eerror('At least one url should be passed')
 
-    with chewy.SessionFactory() as sf:
+    with chewy.session.Factory() as sf:
         for url in url_list:
             try:
                 ep = chewy.HttpEndpoint(url)

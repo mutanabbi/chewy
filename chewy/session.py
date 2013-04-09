@@ -5,6 +5,7 @@
 import http.client
 import os
 import urllib.parse
+import chewy
 
 
 MANIFEST_PATH = 'manifest'
@@ -55,7 +56,7 @@ class Factory(object):
         if key in self.__cp:
             return self.__cp[key]
         else:
-            cs = ChewySession(ep)
+            cs = Session(ep)
             self.__cp[key] = cs
             return cs
 
@@ -83,10 +84,11 @@ class Session(object):
 
     def get_manifest(self):
         url = os.path.join(self.__ep.geturl(), MANIFEST_PATH)
-        log.einfo("Trying to get `{}'".format(url))
+        # TODO: logging
+        #log.einfo("Trying to get `{}'".format(url))
         # TODO Translate and rethrow a possible exception?
         contents = self.retrieve_remote_file(url)
-        manifest = Manifest(contents)
+        manifest = chewy.Manifest(contents)
         assert('We expect the repobase is a part of URL' and manifest.repobase.startswith(self.__ep.geturl()))
         return manifest
 
