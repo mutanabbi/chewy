@@ -3,36 +3,63 @@
 # -*- coding: utf-8 -*-
 #
 
-import argparse
-import portage.output
-import os
 import sys
-import urllib.parse
+import os
 
 # TODO This doesn't needed for installed package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import chewy
 import chewy.session
 
+import argparse
+import portage.output
+import urllib.parse
+import tempfile
+import shutil
+
+
 
 log = portage.output.EOutput()
 
+class PathError(RuntimeError):
+    pass
 
-def uninstall(modules_dir, module):
+
+def sandbox_path(prefix, path):
+    assert(
+        'We expect prefix is an absolute path in the function by security reason'
+        and prefix == os.path.abspath(prefix)
+      )
+    abspath = os.path.abspath(os.path.join(prefix, path))
+    if not abspath.startswith(prefix):
+        raise PathError(
+            'Relative pathname {} trying to pass the sandbox {}'.format(path, abspath)
+          )
+    return abspath
+
+
+# TODO: shutil.copytree can't copy to existed destenition. We need the own analogue
+#def copytree(src, dst, symlinks=False, ignore=None):
+#    for item in os.listdir(src):
+#        if os.path.
+#        for i in os.listdir(dst):
+#            s = os.path.join(src, item)
+#            d = os.path.join(dst, item)
+#            if os.path.isdir(s):
+#                shutil.copytree(s, d, symlinks, ignore, copy_function=shutil.copy)
+#            else:
+#                shutil.copy(s, d)
+
+
+def uninstall(modules_dir, mod):
     '''
         Uninstall the chewy module and all related files
+        Note uninstall doesn't clean empty directories possible after uninstall process
     '''
-    for relpath in [ os.path.join(modules_dir, f) for f in module.addons ]:
-        assert(
-            'We expect modules_dir as absolute path in this function by security reason'
-            and modules_dir == os.path.abspath(modules_dir)
-          )
-        abspath = os.path.abspath(relpath)
-        if not path.startswith(modules_dir):
-            raise PathError(
-                'Relative pathname {} trying to pass the sandbox {}'.format(relpath, abspath)
-              )
-        os.unlink(abspath)
+    for path in [ os.path.join(modules_dir, f) for f in mod.addons ]:
+        abspath = sandbox_path(modules_dir, path)
+        if os.path.exists(abspath):
+            os.unlink(abspath)
 
 
 def rcv_manifests(repobase_list):
@@ -63,6 +90,33 @@ def do_list(url_list):
           ))
 
 
+def rcv_module(mod, modules_dir, sf, uninst=False):
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        # Doesn't catch any exception because any error means module receiving is fall
+        for relpath in mod.addons:
+            url = os.path.join(mod.repobase, relpath)
+            ep = chewy.HttpEndpoint(url)
+            cs = sf.get_session(ep)
+            log.einfo('Get file {}'.format(url))
+            data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
+
+            abs_tmp_path = sandbox_path(tmpdirname, relpath)
+
+            # Create necessary temporary directorie's sub tree
+            os.makedirs(
+                os.path.dirname(abs_tmp_path).strip('/')
+              , exist_ok=True
+              )
+
+            # Going to write just received data to the temporary dir
+            # TODO: Strip repobasename
+            with open(abs_tmp_path, 'wt', encoding = 'utf-8') as f:
+                f.write(data)
+                # TODO: Version compare is required as well. Is it?
+        if not uninst:
+            uninstall(modules_dir, mod)
+        shutil.copytree(tmpdirname, modules_dir)
+
 
 def do_get(url_list, modules_dir):
     '''Execute `get' command'''
@@ -76,21 +130,9 @@ def do_get(url_list, modules_dir):
                 cs = sf.get_session(ep)
                 log.einfo('Get module {}'.format(url))
                 data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
+                mod = chewy.Module(data)
+                rcv_module(mod, modules_dir, sf)
 
-                # Going to write just received data to the modules dir
-                o = urllib.parse.urlsplit(url)
-                os.makedirs(
-                    os.path.join(
-                        modules_dir
-                      , os.path.dirname(o.path).strip('/')
-                      )
-                  , exist_ok=True
-                  )
-                # TODO: Strip repobasename
-                with open(os.path.join(modules_dir, o.path.strip('/')), 'wt', encoding = 'utf-8') as f:
-                    f.write(data)
-                    # TODO Retrieve dependencies according manifest
-                    # TODO Version compare required as well
             # TODO pass 'can't create modules dir' exception through
             except RuntimeError as ex:
                 log.eerror("Can't get {} file: {}".format(url, ex))
