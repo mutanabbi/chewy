@@ -14,7 +14,25 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import chewy
 import chewy.session
 
+
 log = portage.output.EOutput()
+
+
+def uninstall(modules_dir, module):
+    '''
+        Uninstall the chewy module and all related files
+    '''
+    for relpath in [ os.path.join(modules_dir, f) for f in module.addons ]:
+        assert(
+            'We expect modules_dir as absolute path in this function by security reason'
+            and modules_dir == os.path.abspath(modules_dir)
+          )
+        abspath = os.path.abspath(relpath)
+        if not path.startswith(modules_dir):
+            raise PathError(
+                'Relative pathname {} trying to pass the sandbox {}'.format(relpath, abspath)
+              )
+        os.unlink(abspath)
 
 
 def rcv_manifests(repobase_list):
