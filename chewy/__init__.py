@@ -89,6 +89,10 @@ class ModuleStatus(object):
         return '???'
 
 
+    def needs_update(self):
+        return ModuleStatus.UPDATE_AVAILABLE == self.__status
+
+
 def collect_installed_modules(modules_dir):
     ''' Return: a dict of `repobase` to a list of `Module`, status, None '''
 

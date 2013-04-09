@@ -20,6 +20,8 @@ import tempfile
 
 log = portage.output.EOutput()
 
+
+
 def uninstall(modules_dir, mod):
     '''
         Uninstall the chewy module and all related files
@@ -41,22 +43,6 @@ def rcv_manifests(repobase_list):
                 manifest_map[repobase] = sf.get_session(ep).get_manifest()
     return manifest_map
 
-
-
-# TODO If no repo given, try to find a modules base,
-# scan it and collect used repo bases...?
-def do_list(url_list):
-    '''Execute `list' command'''
-    if not url_list:
-        log.eerror('At least one repository URL should be given')
-    # Make URLs unique
-    urls = set(url_list)
-
-    for repobase, manifest in rcv_manifests(urls).items():
-        log.einfo("Modules from the `{}' repository".format(repobase))
-        print(chewy.FancyGrid(
-            [ [mod.path, mod.version, mod.description] for mod in manifest.modules ]
-          ))
 
 
 def rcv_module(url, modules_dir, sf, uninst=False):
@@ -99,6 +85,52 @@ def rcv_module(url, modules_dir, sf, uninst=False):
         chewy.copytree(tmpdirname, modules_dir)
 
 
+
+def get_statuses(modules_dir):
+    '''
+        Return: Dictionary by unique repobase to module-related statuses' list
+    '''
+    # Get modules installed in a given dir
+    status_map = chewy.collect_installed_modules(modules_dir)
+
+    # Retrieve remote_modules_map for all used chewy repositories
+    manifest_map = rcv_manifests(status_map.keys())
+
+    # Iterate over installed modules (statuses actually) grouped by repository
+    for repobase, modules in status_map.items():
+        # Iterate over list of module statuses
+        for status in modules:
+            local_mod = status.module
+            # Find local module in a remote repository
+            remote_mod = chewy.find(manifest_map[repobase].modules, lambda x: x.path == local_mod.path)
+            # If not found, mark current module as deleted
+            if not remote_mod:
+                status.set_remote_version(None)
+            else:
+                assert(remote_mod.path == local_mod.path)
+                # Remember the remote version
+                status.set_remote_version(remote_mod.version)
+    return status_map
+
+
+
+# TODO If no repo given, try to find a modules base,
+# scan it and collect used repo bases...?
+def do_list(url_list):
+    '''Execute `list' command'''
+    if not url_list:
+        log.eerror('At least one repository URL should be given')
+    # Make URLs unique
+    urls = set(url_list)
+
+    for repobase, manifest in rcv_manifests(urls).items():
+        log.einfo("Modules from the `{}' repository".format(repobase))
+        print(chewy.FancyGrid(
+            [ [mod.path, mod.version, mod.description] for mod in manifest.modules ]
+          ))
+
+
+
 def do_get(url_list, modules_dir):
     '''Execute `get' command'''
     if not url_list:
@@ -114,32 +146,10 @@ def do_get(url_list, modules_dir):
                 log.eerror("Can't get {} file: {}".format(url, ex))
 
 
+
 def do_status(modules_dir):
     '''Execute `status' command'''
-
-    # Get modules installed in a given dir
-    status_map = chewy.collect_installed_modules(modules_dir)
-
-    # Retrieve remote_modules_map for all used chewy repositories
-    manifests_map = rcv_manifests(status_map.keys())
-
-    # Iterate over installed modules (statuses actually) grouped by repository
-    for repobase, modules in status_map.items():
-        # Iterate over list of module statuses
-        for status in modules:
-            local_mod = status.module
-            # Find local module in a remote repository
-            remote_mod = chewy.find(manifests_map[repobase].modules, lambda x: x.path == local_mod.path)
-            # If not found, mark current module as deleted
-            if not remote_mod:
-                status.set_remote_version(None)
-            else:
-                assert(remote_mod.path == local_mod.path)
-                # Remember the remote version
-                status.set_remote_version(remote_mod.version)
-
-    # Group by unique repobase
-    for repobase in status_map:
+    for repobase, status_list in get_statuses(modules_dir).items():
         log.einfo('List of {}'.format(repobase))
         # TODO Colorise output (especially new versions)
         print(
@@ -151,38 +161,25 @@ def do_status(modules_dir):
                   , m.available_version()
                   , m.module.description
                 ]
-                for m in status_map[repobase]
+                for m in status_list
               ])
           )
 
 
+
 def do_update(modules_dir):
     '''Execute `update' command'''
-
-    # Get modules installed in a given dir
-    status_map = chewy.collect_installed_modules(modules_dir)
-
-    # Retrieve remote_modules_map for all used chewy repositories
-    manifest_map = rcv_manifests(status_map.keys())
-
-    assert(
-        'We expect to receive same number of manifests as different repositories we are subscribed to'
-        'Or less if some error during receiving occured'
-       and len(status_map) >= len(manifest_map)
-      )
-
-    for repobase in status_map:
-        log.einfo('Updating {} repository'.format(repobase))
-        # TODO: Check we didn't fault some manifests receiving by network problems
-        assert(repobase in manifest_map)
-        matched_modules = [ mod.module for mod in status_map[repobase] if mod.module in manifest_map[repobase].modules ]
-
-        try:
-            pass
-        except RuntimeError as ex:
-            log.einfo('Error: {}'.format(ex))
-            continue
-
+    with chewy.session.Factory() as sf:
+        for repobase, status_list in get_statuses(modules_dir).items():
+            for url in [
+                os.path.join(st.module.repobase, st.module.path)
+                for st in status_list if st.needs_update()
+              ]:
+                try:
+                    rcv_module(url, modules_dir, sf)
+                # TODO pass 'can't create modules dir' exception through
+                except RuntimeError as ex:
+                    log.eerror("Can't update module {}: {}".format(url, ex))
 
 
 
@@ -257,6 +254,7 @@ def main():
 
     # Done!
     sys.exit(0)
+
 
 
 if __name__ == "__main__":
