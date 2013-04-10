@@ -20,6 +20,7 @@ distutils.core.setup(
   , url              = 'https://github.com/mutanabbi/chewy'
   , packages         = ['chewy']
   , scripts          = ['bin/chewy', 'bin/chewy-update-manifest']
+  , data_files       = [('share/bash-completion', ['bash_completion.d/chewy'])]
   , license          = 'GPL-3'
   , classifiers      = [
         'Development Status :: 4 - Beta'
