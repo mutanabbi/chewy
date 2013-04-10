@@ -2,27 +2,32 @@
 # Bash command line completer for `chewy`
 #
 
+have chewy
+{
 
 _guess_modules_dir()
 {
-    local curdir=$1
+    local modules_dir=
+    local curdir=`pwd`
 
-    if [ -z "${curdir}" -o "${curdir}" = "/" ]; then
-        modules_dir=
-    elif [ -d "${curdir}/cmake/modules" ]; then
-        modules_dir="${curdir}/cmake/modules"
-    elif [ -d "${curdir}/cmake" ]; then
-        modules_dir="${curdir}/cmake"
-    else
-        _guess_modules_dir `dirname "${curdir}"`
-    fi
-}
+    while [ -z "${modules_dir}" -a -n "${curdir}" -a "${curdir}" != "/" ]; do
+        if [ -d "${curdir}/cmake/modules" ]; then
+            modules_dir="${curdir}/cmake/modules"
+        elif [ -d "${curdir}/cmake" ]; then
+            modules_dir="${curdir}/cmake"
+        else
+            curdir=`dirname "${curdir}"`
+        fi
+    done
+    _upvar modules_dir "${modules_dir}"
+} # _guess_modules_dir()
 
 _get_modules_dir_and_command()
 {
     local i
     local next=
-    modules_dir=
+    local modules_dir=
+    local cmd=
     for (( i=1; i < cword; i++ )); do
         if [ -z "${next}" ]; then
             if [ "${COMP_WORDS[i]}" = "-m" -o "${COMP_WORDS[i]}" = "--modules-dir" ]; then
@@ -45,20 +50,23 @@ _get_modules_dir_and_command()
         fi
     done
     if [ -z "${modules_dir}" ]; then
-        _guess_modules_dir `pwd`
+        _guess_modules_dir
     fi
-}
+    _upvar modules_dir "${modules_dir}"
+    _upvar cmd "${cmd}"
+} # _get_modules_dir_and_command()
 
 _get_repobases_started_with()
 {
     local starts_with=$1
     # Return full repobase paths
-    repolist=`grep --color=none -nr "X-Chewy-RepoBase: ${starts_with}" "${modules_dir}/"*.cmake \
+    local repolist=`grep --color=none -nr "X-Chewy-RepoBase: ${starts_with}" "${modules_dir}/"*.cmake \
         | sed "s,.*X-Chewy-RepoBase:\s*\(${starts_with}.*\)\s*$,\1," \
         | sort \
         | uniq \
         `
-}
+    _upvar repolist "${repolist}"
+} # _get_repobases_started_with()
 
 _chewy()
 {
@@ -67,10 +75,14 @@ _chewy()
     local _chewy_short_opts="-m"
 
     COMPREPLY=()
+    local cur
+    local prev
+    local words
+    local cword
     _get_comp_words_by_ref -n ':' cur prev words cword
 
-    cmd=
-    modules_dir=
+    local cmd=
+    local modules_dir=
     if [ ${#words[@]} -ge 1 ]; then
         _get_modules_dir_and_command
     fi
@@ -91,14 +103,15 @@ _chewy()
         fi
         case "$cmd" in
         get | list)
-            compopt -o nospace
             if [ -n "${modules_dir}" ]; then
                 _get_repobases_started_with "${cur}"
             fi
-            if [ "${cur}" != "http://" -o "${cur}" != "https://" ]; then
+            if [[ ${#cur} -ge 7 ]]; then
                 compopt +o nospace
+            else
+                compopt -o nospace
             fi
-            COMPREPLY=( $(compgen -o nospace -W "http:// https:// ${repolist}" \
+            COMPREPLY=( $(compgen -W "http:// https:// ${repolist}" \
                 -- "${cur}") )
             __ltrim_colon_completions ${cur}
             ;;
@@ -117,7 +130,9 @@ _chewy()
         esac
         ;;
     esac
-}
+} # _chewy()
 
 complete -F _chewy chewy
+} # have chewy
+
 # kate: hl bash;
