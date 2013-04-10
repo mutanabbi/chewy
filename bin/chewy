@@ -177,7 +177,7 @@ def do_status(modules_dir):
 
 
 
-def do_update(modules_dir):
+def do_update(file_list, modules_dir):
     '''Execute `update' command'''
     with chewy.session.Factory() as sf:
         for repobase, status_list in get_statuses(modules_dir).items():
@@ -187,6 +187,23 @@ def do_update(modules_dir):
                 # TODO pass 'can't create modules dir' exception through
                 except RuntimeError as ex:
                     log.eerror("Can't update module {}: {}".format(url, ex))
+
+
+
+def do_delete(file_list, modules_dir):
+    # TODO:
+    # for file in file_list:
+    #   abspath(file)
+    #   SandboxPath(path)
+    #   if module file
+    #     uninstall
+    #   else
+    #     mdoules_dir + file
+    #     abspath
+    #     SandboxPath
+    #     if module file
+    #       uninstall
+    pass
 
 
 
@@ -203,32 +220,48 @@ def main():
 
     list_parser = subparsers.add_parser(
         'list'
-      , help='Repositories URI list. Empty list means to get a list of all'
-        'repositories which are founded in installed files'
+      , help="Show available modules by repositores' URLs."
       )
     get_parser = subparsers.add_parser(
         'get'
-      , help='Get file from repository and add it to the project as new one'
+      , help='Get module from repository and add it to the project as new one.'
       )
     update_parser = subparsers.add_parser(
         'update'
-      , help='Update [all] installed files from their repo-sources'
+      , help='Update [all] installed modules from their repo-sources'
       )
     status_parser = subparsers.add_parser('status', help='Check status of [all] installed files')
+    delete_parser = subparsers.add_parser(
+        'delete'
+      , help='Delete installed modules'
+      )
 
-    list_parser.add_argument('rep_url', metavar='REPO-URL', help='Repositories URL list', nargs='*')
+    list_parser.add_argument(
+        'rep_url'
+      , metavar='REPO-URL'
+      , help='Repositories URL list.'
+             'Empty one means to list all repositories which URLs are '
+             'founded in installed modules'
+      , nargs='*'
+      )
     get_parser.add_argument('file_url', metavar='FILE-URL', help='Files URL list', nargs='+')
     update_parser.add_argument(
         'file_url'
       , metavar='FILE-URL'
-      , help='Files URI list. Empty list means to update all installed files'
+      , help='Files URI list. Empty one means to update all installed modules'
       , nargs='*'
       )
     status_parser.add_argument(
         'file_url'
       , metavar='FILE-URL'
-      , help='Files URI list. Empty list means to check status of all installed files'
+      , help='Files URI list. Empty one means to check status of all installed modules'
       , nargs='*'
+      )
+    delete_parser.add_argument(
+        'file_url'
+      , metavar='FILE-URL'
+      , help='Module paths list'
+      , nargs='+'
       )
 
     args = cmd_parser.parse_args()
@@ -257,7 +290,9 @@ def main():
         elif args.cmd == 'status':
             do_status(modules_dir)
         elif args.cmd == 'update':
-            do_update(modules_dir)
+            do_update(args.file_url, modules_dir)
+        elif args.cmd == 'delete':
+            do_delete(args.file_url, modules_dir)
 
     # Done!
     sys.exit(0)
