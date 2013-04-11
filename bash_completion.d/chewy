@@ -61,6 +61,9 @@ _get_repobases_started_with()
 {
     local starts_with=$1
     # Return full repobase paths
+    if [ ! -d "${modules_dir}" ]; then
+        return                                              # Not existed dir: do nothing!
+    fi
     local repolist=`grep --color=none -nr "X-Chewy-RepoBase: ${starts_with}" "${modules_dir}/"*.cmake 2>/dev/null \
         | sed "s,.*X-Chewy-RepoBase:\s*\(${starts_with}.*\)\s*$,\1," \
         | sort \
@@ -125,13 +128,13 @@ _chewy()
             ;;
         status | update)
             # If modules-dir found, change current dir temporary...
-            if [ -n "${modules_dir}" ]; then
+            if [ -n "${modules_dir}" -a -d "${modules_dir}" ]; then
                 cd ${modules_dir}
             fi
             # TODO Is it reasonable to find a real chewy modules and complete only
             # them instead of all files?
             _filedir cmake
-            if [ -n "${modules_dir}" ]; then
+            if [ -n "${modules_dir}" -a -d "${modules_dir}" ]; then
                 cd - >/dev/null
             fi
             ;;

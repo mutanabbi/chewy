@@ -29,8 +29,6 @@ def modules_dir_lookup(start_path = os.getcwd()):
     while start_path != '/':
         try_mod_dir = os.path.join(start_path, EXPECTED_CMAKE_MODULES_PATH)
         if os.path.isdir(try_mod_dir):
-            # TODO: logging
-            #log.einfo("Found CMake modules directory at `{}'".format(try_mod_dir))
             return try_mod_dir
         else:
             start_path = os.path.dirname(start_path)

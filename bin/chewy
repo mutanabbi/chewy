@@ -272,14 +272,16 @@ def main():
     else:
         # Initialize working directory
         if args.modules_dir:
+            # TODO Check for symlinked directory
             if os.path.isdir(args.modules_dir):
                 modules_dir = args.modules_dir
             else:
-                log.eerror("Unable to find CMake modules directory `{}'".format(chewy.EXPECTED_CMAKE_MODULES_PATH))
+                log.eerror("Specified path is not a directory: `{}'".format(args.modules_dir))
                 sys.exit(1)
         else:
             try:
                 modules_dir = chewy.modules_dir_lookup()
+                log.einfo("Guessed CMake modules directory: `{}'".format(modules_dir))
             except RuntimeError as e:
                 log.eerror(e.args[0])
                 sys.exit(1)
