@@ -191,19 +191,15 @@ def do_update(file_list, modules_dir):
 
 
 def do_delete(file_list, modules_dir):
-    # TODO:
-    # for file in file_list:
-    #   abspath(file)
-    #   SandboxPath(path)
-    #   if module file
-    #     uninstall
-    #   else
-    #     mdoules_dir + file
-    #     abspath
-    #     SandboxPath
-    #     if module file
-    #       uninstall
-    pass
+    for f in file_list:
+        try:
+            abspath = os.path.abspath(f)
+            if not abspath.startswith(modules_dir):
+                abspath = chewy.sandbox_path(modules_dir, f)
+            uninstall(modules_dir, chewy.open_module(abspath))
+        except (RuntimeError, IOError) as ex:
+            log.eerror("Can't uninstall {}: {}".format(f, ex))
+            continue
 
 
 

@@ -38,10 +38,16 @@ def modules_dir_lookup(start_path = os.getcwd()):
 def modules_lookup(modules_dir):
     ''' Return: list<string> or [] '''
     result = []
+    # TODO: Check file is module by internal X-Chewy tags
     for root, dirs, files in os.walk(modules_dir):
         result += [os.path.join(root, x) for x in fnmatch.filter(files, '*.cmake')]
     return result
 
+
+def open_module(module_file):
+    with open(module_file, 'rt') as f:
+        content = f.read()
+        return Module(content)
 
 
 def collect_installed_modules(modules_dir):
@@ -52,17 +58,19 @@ def collect_installed_modules(modules_dir):
     mod_list = {}
     for module_file in modules_lookup(modules_dir):
         try:
-            with open(module_file, 'rt') as f:
-                content = f.read()
-                mod = Module(content)
-                if not mod.repobase in mod_list:
-                    mod_list[mod.repobase] = []
-                mod_list[mod.repobase].append(ModuleStatus(mod))
+            mod = open_module(module_file)
+            if not mod.repobase in mod_list:
+                mod_list[mod.repobase] = []
+            mod_list[mod.repobase].append(ModuleStatus(mod))
         except NoMetaError:
             continue
-        except ModuleError as e:
+        except ModuleError as ex:
             # TODO: logging
-            #log.ewarn('Module {} has error: {}'.format(module_file, e.args[0]))
+            #log.ewarn('Module {} has error: {}'.format(module_file, ex.args[0]))
+            continue
+        except IOError as ex:
+            # TODO: logging
+            #log.ewarn('Module {} has error: {}'.format(module_file, ex))
             continue
     return mod_list
 
