@@ -30,5 +30,3 @@ class FancyGrid(object):
 
     def __str__(self):
         return self.__s
-
-
