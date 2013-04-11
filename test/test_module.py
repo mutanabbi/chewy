@@ -36,7 +36,7 @@ _invalid_case_3 = '''
 
 
 class ChewyModuleTester(unittest.TestCase):
-    '''Unit tests for [???]'''
+    '''Unit tests for chewy.Module'''
 
     def setUp(self):
         pass
@@ -90,9 +90,46 @@ class ChewyModuleTester(unittest.TestCase):
         self.assertEqual(mod.description, 'description')
 
 
+class ChewyModuleStatusTester(unittest.TestCase):
+    '''Unit tests for chewy.ModuleStatus'''
+
+    def setUp(self):
+        pass
+
+
+    def test_module_status_1(self):
+        mod = chewy.Module(_test_case_1)
+        status = chewy.ModuleStatus(mod)
+        status.set_remote_version(chewy.Version('1.0'))
+        self.assertFalse(status.needs_update())
+
+
+    def test_module_status_2(self):
+        mod = chewy.Module(_test_case_1)
+        status = chewy.ModuleStatus(mod)
+        status.set_remote_version(chewy.Version('2.0'))
+        self.assertFalse(status.needs_update())
+
+
+    def test_module_status_3(self):
+        mod = chewy.Module(_test_case_1)
+        status = chewy.ModuleStatus(mod)
+        status.set_remote_version(chewy.Version('2.1'))
+        self.assertTrue(status.needs_update())
+
+
+    def test_module_status_4(self):
+        mod = chewy.Module(_test_case_1)
+        status = chewy.ModuleStatus(mod)
+        status.set_remote_version(chewy.Version('3.5'))
+        self.assertTrue(status.needs_update())
+
+
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(ChewyModuleTester)
-    result = unittest.TextTestRunner(verbosity=2).run(suite)
-    if result.wasSuccessful() != True:
+    module_suite = unittest.TestLoader().loadTestsFromTestCase(ChewyModuleTester)
+    status_suite = unittest.TestLoader().loadTestsFromTestCase(ChewyModuleStatusTester)
+    module_result = unittest.TextTestRunner(verbosity=2).run(module_suite)
+    status_result = unittest.TextTestRunner(verbosity=2).run(status_suite)
+    if module_result.wasSuccessful() != True or status_result.wasSuccessful() != True:
         sys.exit(1)
 
