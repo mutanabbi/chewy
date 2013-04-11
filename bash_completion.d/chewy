@@ -52,6 +52,7 @@ _get_modules_dir_and_command()
     if [ -z "${modules_dir}" ]; then
         _guess_modules_dir
     fi
+    __expand_tilde_by_ref modules_dir
     _upvar modules_dir "${modules_dir}"
     _upvar cmd "${cmd}"
 } # _get_modules_dir_and_command()
