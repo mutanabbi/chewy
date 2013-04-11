@@ -39,7 +39,6 @@ class HttpEndpoint(urllib.parse.SplitResult):
             raise RuntimeError("Unsupported scheme in URL `{}'".format(url))
 
 
-
 class Factory(object):
     def __init__(self):
         self.__cp = {}
@@ -97,6 +96,8 @@ class Session(object):
         '''Retrieve the file specified'''
         self.__connection.request('GET', file_path)
         r = self.__connection.getresponse()
+        print("r="+repr(r))
+        print("r.status="+repr(r.status))
         # request should be read any way if we want reuse this connection
         data = r.read()
         if r.status != http.client.OK:
