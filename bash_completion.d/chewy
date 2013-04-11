@@ -80,6 +80,7 @@ _chewy()
     local words
     local cword
     _get_comp_words_by_ref -n ':' cur prev words cword
+    _expand || return 0
 
     local cmd=
     local modules_dir=
