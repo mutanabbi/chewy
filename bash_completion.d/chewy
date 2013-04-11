@@ -71,6 +71,10 @@ _get_repobases_started_with()
 
 _chewy()
 {
+    # Make sure a stupid^W user is not trying to 'complete' a `directory/chewy/`
+    local program=$1
+    type "${program}" &>/dev/null || return 0
+
     local _chewy_commands="get list status update"
     local _chewy_long_opts="--modules-dir"
     local _chewy_short_opts="-m"
@@ -92,7 +96,7 @@ _chewy()
     fi
 
     case "$prev" in
-    chewy)
+    ${program})
         COMPREPLY=( $(compgen -W "${_chewy_long_opts} ${_chewy_short_opts} ${_chewy_commands}" \
             -- ${cur}) )
         ;;
@@ -137,6 +141,7 @@ _chewy()
 } # _chewy()
 
 complete -F _chewy chewy
+
 } # have chewy
 
 # kate: hl bash;
