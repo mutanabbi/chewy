@@ -78,7 +78,7 @@ class ChewyModuleTester(unittest.TestCase):
         mod = chewy.Module(_test_case_1)
         self.assertEqual(mod.repobase, 'https://raw.github.com/mutanabbi/chewy-cmake-rep/master/')
         self.assertEqual(mod.path, 'AddBoostTests.cmake')
-        self.assertEqual(mod.version, '2.0')
+        self.assertEqual(mod.version, chewy.Version('2.0'))
         self.assertTrue(0 < len(mod.description))
 
 
@@ -86,7 +86,7 @@ class ChewyModuleTester(unittest.TestCase):
         mod = chewy.Module(chewy.Module.PiecewiseConstruct('repobase', 'test.cmake', '1.0', 'description'))
         self.assertEqual(mod.repobase, 'repobase')
         self.assertEqual(mod.path, 'test.cmake')
-        self.assertEqual(mod.version, '1.0')
+        self.assertEqual(mod.version, chewy.Version('1.0'))
         self.assertEqual(mod.description, 'description')
 
 

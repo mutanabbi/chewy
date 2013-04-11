@@ -49,7 +49,7 @@ class ChewyModuleTester(unittest.TestCase):
         self.assertEqual(manifest.repobase, 'https://raw.github.com/mutanabbi/chewy-cmake-rep/master/')
         self.assertEqual(len(manifest.modules), 1)
         self.assertEqual(manifest.modules[0].path, 'test.cmake')
-        self.assertEqual(manifest.modules[0].version, '2.0')
+        self.assertEqual(manifest.modules[0].version, chewy.Version('2.0'))
         self.assertEqual(manifest.modules[0].description, 'sample description')
 
     def test_manifest_with_addons(self):
@@ -57,7 +57,7 @@ class ChewyModuleTester(unittest.TestCase):
         self.assertEqual(manifest.repobase, 'https://raw.github.com/mutanabbi/chewy-cmake-rep/master/')
         self.assertEqual(len(manifest.modules), 1)
         self.assertEqual(manifest.modules[0].path, 'test.cmake')
-        self.assertEqual(manifest.modules[0].version, '2.0')
+        self.assertEqual(manifest.modules[0].version, chewy.Version('2.0'))
         self.assertEqual(manifest.modules[0].description, 'sample description')
         self.assertEqual(len(manifest.modules[0].addons), 2)
         self.assertEqual(manifest.modules[0].addons[0], 'some.file')
