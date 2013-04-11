@@ -3,7 +3,7 @@
 # Some tests for chewy
 #
 
-""" Unit tests for FancyGrid """
+""" Unit tests for chewy.FancyGrid """
 
 # Standard imports
 import os
@@ -41,7 +41,7 @@ _expect_4='''\
 '''
 
 class FancyGridTester(unittest.TestCase):
-    '''Unit tests for [???]'''
+    '''Unit tests for chewy.FancyGrid'''
 
     def setUp(self):
         pass
@@ -64,8 +64,7 @@ class FancyGridTester(unittest.TestCase):
 
 
 if __name__ == '__main__':
-#    unittest.main()
-    suite = unittest.TestLoader().loadTestsFromTestCase(FancyGridTester)
+    suite = unittest.makeSuite(FancyGridTester)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     if result.wasSuccessful() != True:
         sys.exit(1)

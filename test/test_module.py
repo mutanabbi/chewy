@@ -126,8 +126,8 @@ class ChewyModuleStatusTester(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    module_suite = unittest.TestLoader().loadTestsFromTestCase(ChewyModuleTester)
-    status_suite = unittest.TestLoader().loadTestsFromTestCase(ChewyModuleStatusTester)
+    module_suite = unittest.makeSuite(ChewyModuleTester)
+    status_suite = unittest.makeSuite(ChewyModuleStatusTester)
     module_result = unittest.TextTestRunner(verbosity=2).run(module_suite)
     status_result = unittest.TextTestRunner(verbosity=2).run(status_suite)
     if module_result.wasSuccessful() != True or status_result.wasSuccessful() != True:

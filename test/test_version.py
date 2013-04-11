@@ -69,8 +69,7 @@ class ChewyVersionTester(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(ChewyVersionTester)
+    suite = unittest.makeSuite(ChewyVersionTester)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     if result.wasSuccessful() != True:
         sys.exit(1)
-2

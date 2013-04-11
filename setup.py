@@ -15,6 +15,7 @@ distutils.core.setup(
     name             = 'chewy'
   , version          = chewy.VERSION
   , description      = 'Python script to manage CMake modules'
+  , keywords         = 'CMake modules synchronizer'
   , maintainer       = 'Alex Turbov'
   , maintainer_email = 'I.zaufi@gmail.com'
   , url              = 'https://github.com/mutanabbi/chewy'
@@ -26,14 +27,14 @@ distutils.core.setup(
         'Development Status :: 4 - Beta'
       , 'Environment :: Console'
       , 'Intended Audience :: Developers'
-      , 'Intended Audience :: System Administrators'
-      , 'License :: OSI Approved :: GNU General Public License (GPL-3)'
+      , 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
       , 'Natural Language :: English'
         # TODO Is it really Linux only?
       , 'Operating System :: POSIX :: Linux'
       , 'Programming Language :: Python'
         # TODO What about other Python versions?
       , 'Programming Language :: Python :: 3'
-      , 'Topic :: Software Development'
+      , 'Topic :: Software Development :: Version Control'
       ]
+  , test_suite       = 'tests'
   )

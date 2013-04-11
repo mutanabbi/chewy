@@ -65,7 +65,7 @@ def rcv_module(obj, modules_dir, sf):
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Write module to file
-        with open(chewy.sandbox_path(tmpdirname, mod.path), 'wt', encoding = 'utf-8') as f:
+        with open(chewy.sandbox_path(tmpdirname, mod.path), 'wt', encoding='utf-8') as f:
             f.write(data)
         # Receive all module-related files
         for relpath in mod.addons:
@@ -85,7 +85,7 @@ def rcv_module(obj, modules_dir, sf):
 
             # Going to write just received data to the temporary dir
             # TODO: Strip repobasename
-            with open(abs_tmp_path, 'wt', encoding = 'utf-8') as f:
+            with open(abs_tmp_path, 'wt', encoding='utf-8') as f:
                 f.write(data)
                 # TODO: Version compare is required as well. Is it?
         if local_module:
@@ -298,7 +298,6 @@ def main():
 
     # Done!
     sys.exit(0)
-
 
 
 if __name__ == "__main__":

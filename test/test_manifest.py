@@ -3,7 +3,7 @@
 # Some tests for Chewy manifest
 #
 
-""" Unit tests for chewy.manifest """
+""" Unit tests for chewy.Manifest """
 
 # Standard imports
 import os
@@ -30,7 +30,7 @@ _invalid_case_1 = '''
 
 
 class ChewyModuleTester(unittest.TestCase):
-    '''Unit tests for [???]'''
+    '''Unit tests for chewy.Manifest'''
 
     def setUp(self):
         pass
@@ -65,7 +65,7 @@ class ChewyModuleTester(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(ChewyModuleTester)
+    suite = unittest.makeSuite(ChewyModuleTester)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     if result.wasSuccessful() != True:
         sys.exit(1)
