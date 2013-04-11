@@ -2,6 +2,8 @@
 # Bash command line completer for `chewy`
 #
 
+log=/tmp/chewy-completion.log
+
 have chewy
 {
 
@@ -28,6 +30,9 @@ _get_modules_dir_and_command()
     local next=
     local modules_dir=
     local cmd=
+    echo "-------------------------------------">$log
+    echo "on entry: modules_dir=${modules_dir}">>$log
+
     for (( i=1; i < cword; i++ )); do
         if [ -z "${next}" ]; then
             if [ "${COMP_WORDS[i]}" = "-m" -o "${COMP_WORDS[i]}" = "--modules-dir" ]; then
@@ -60,7 +65,7 @@ _get_repobases_started_with()
 {
     local starts_with=$1
     # Return full repobase paths
-    local repolist=`grep --color=none -nr "X-Chewy-RepoBase: ${starts_with}" "${modules_dir}/"*.cmake \
+    local repolist=`grep --color=none -nr "X-Chewy-RepoBase: ${starts_with}" "${modules_dir}/"*.cmake 2>/dev/null \
         | sed "s,.*X-Chewy-RepoBase:\s*\(${starts_with}.*\)\s*$,\1," \
         | sort \
         | uniq \
@@ -83,6 +88,8 @@ _chewy()
 
     local cmd=
     local modules_dir=
+    local repolist=
+
     if [ ${#words[@]} -ge 1 ]; then
         _get_modules_dir_and_command
     fi
