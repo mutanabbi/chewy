@@ -64,8 +64,10 @@ As result you gonna see a list of
 
     U|M filename LocalVersion RemoteVersion
 
-**U** - for **U**pdate
-**M** - for **M**odified
+
+where,
+ - **U** - for **U**pdate
+ - **M** - for **M**odified
 
 
     chewy jump-to-light-speed
