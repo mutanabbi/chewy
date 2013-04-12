@@ -76,9 +76,9 @@ As result you gonna see a list of
 
 How to get help
 ===============
-chewy --help
-chewy command --help
-man chewy
+    chewy --help
+    chewy command --help
+    man chewy
 
 
 >Chewy is the best second pilot ever!
