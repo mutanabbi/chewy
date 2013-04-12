@@ -45,24 +45,31 @@ def mustBeIgnored(entry):
     return False
 
 
-def scanDir(base_path):
+def scanDir(repobase_path, rel_path):
     this_level_result = []
-    log.einfo('Scanning directory ' + base_path + ' for files...')
-    for entry in os.listdir(base_path):
-        current = base_path + entry
+    log.einfo('Scanning directory ' + rel_path + ' for files...')
+    current_abs_path = os.path.join(repobase_path, rel_path)
+    for entry in os.listdir(current_abs_path):
+        current = os.path.join(rel_path, entry)
         if mustBeIgnored(entry):
             continue
-        if os.path.isdir(entry):
-            this_level_result += scanDir(entry)
-        elif os.path.isfile(entry):
+        if os.path.isdir(current):
+            this_level_result += scanDir(repobase_path, current)
+        elif os.path.isfile(current):
             try:
-                mod = getMetaInfo(entry)
+                mod = getMetaInfo(current)
                 this_level_result.append(mod)
-                log.einfo('Found {} {}'.format(mod.path, mod.version))
+                mod_abs_path = os.path.abspath(os.path.join(repobase_path, mod.path))
+                cur_abs_path = os.path.abspath(os.path.join(repobase_path, current))
+                if mod_abs_path == cur_abs_path:
+                    log.einfo('Found {} {}'.format(mod.path, mod.version))
+                else:
+                    log.eerror('Module path do not match: `{}` expected to be `{}`'.format(mod.path, entry))
+                    continue
             except chewy.NoMetaError:
                 continue
             except chewy.ModuleError as e:
-                log.ewarn('Module {} loading failure: {}'.format(entry, e.args[0]))
+                log.ewarn('Module {} loading failure: {}'.format(current, e))
                 log.ewarn('Skip it!')
                 continue
     return this_level_result
@@ -75,6 +82,7 @@ def try_to_get_repobase_from_manifest(repo_dir):
         f = open(manifest_filename, 'rt')
         content = f.read()
         return chewy.Manifest(content).repobase
+    # TODO More elaborate error description needed
     raise chewy.ManifestError('Manifest file not found or invalid: {}'.format(manifest_filename))
 
 
@@ -108,7 +116,7 @@ def main():
 
     log.einfo('Set repo base directory to ' + repo_url)
     # Walk through the current directory down and find all files
-    modules = scanDir(os.curdir)
+    modules = scanDir(os.curdir, os.curdir)
     if len(modules):
         manifest = open(_MANIFEST_FILENAME, 'wt')
         manifest.write(_X_CHEWY_REPOBASE + repo_url + '\n' + _MANIFEST_HEADER)
