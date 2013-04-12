@@ -58,14 +58,21 @@ def scanDir(repobase_path, rel_path):
         elif os.path.isfile(current):
             try:
                 mod = getMetaInfo(current)
-                this_level_result.append(mod)
+                # Make sure module path is match
                 mod_abs_path = os.path.abspath(os.path.join(repobase_path, mod.path))
                 cur_abs_path = os.path.abspath(os.path.join(repobase_path, current))
-                if mod_abs_path == cur_abs_path:
-                    log.einfo('Found {} {}'.format(mod.path, mod.version))
-                else:
-                    log.eerror('Module path do not match: `{}` expected to be `{}`'.format(mod.path, entry))
+                if mod_abs_path != cur_abs_path:
+                    log.eerror('Module path invalid: `{}`'.format(mod.path))
+                    log.ewarn('Skip it!')
                     continue
+                # Make sure module has a description
+                if not mod.description:
+                    log.eerror('Module must contain a description meta tag: `{}`'.format(current))
+                    log.ewarn('Skip it!')
+                    continue
+                # TODO Make sure all listed files exists
+                this_level_result.append(mod)
+                log.einfo('Found {} {}'.format(mod.path, mod.version))
             except chewy.NoMetaError:
                 continue
             except chewy.ModuleError as e:
