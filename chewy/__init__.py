@@ -103,7 +103,11 @@ def copytree(src, dst, symlinks=False, ignore=None):
     for path, dirs, files in os.walk(src, topdown=True):
         base = path[ len(src) if path.startswith(src) else 0 : ].strip('/')
         for d in dirs:
-            os.mkdir(os.path.join(dst, base, d))
+            dirname = os.path.join(dst, base, d)
+            if not os.path.exists(dirname):
+                os.mkdir(dirname)
+            elif not os.path.isdir(dirname):
+                RuntimeError("Path {} is exist and it isn't directory as expected".format(dirnmae))
         for f in files:
             shutil.copy(os.path.join(path, f), os.path.join(dst, base, f))
 

@@ -158,10 +158,23 @@ class Application(object):
         data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
         mod = chewy.Module(data)
 
+        def create_subtree(prefix, name):
+            abs_path = chewy.sandbox_path(prefix, name)
+            abs_dirname = os.path.dirname(abs_path)
+            if not os.path.exists(abs_dirname):
+                os.makedirs(
+                    abs_dirname
+                  , exist_ok=True
+                  )
+
         with tempfile.TemporaryDirectory() as tmpdirname:
+            # Create necessary temporary directorie's sub tree
+            create_subtree(tmpdirname, mod.path)
             # Write module to file
             with open(chewy.sandbox_path(tmpdirname, mod.path), 'wt', encoding='utf-8') as f:
                 f.write(data)
+
+
             # Receive all module-related files
             for relpath in mod.addons:
                 url = os.path.join(mod.repobase, relpath)
@@ -170,17 +183,12 @@ class Application(object):
                 log.einfo('Get addon file  {}'.format(url))
                 data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
 
-                abs_tmp_path = chewy.sandbox_path(tmpdirname, relpath)
-
                 # Create necessary temporary directorie's sub tree
-                os.makedirs(
-                    os.path.dirname(abs_tmp_path).strip('/')
-                  , exist_ok=True
-                  )
+                create_subtree(tmpdirname, relpath)
 
                 # Going to write just received data to the temporary dir
                 # TODO: Strip repobasename
-                with open(abs_tmp_path, 'wt', encoding='utf-8') as f:
+                with open(chewy.sandbox_path(tmpdirname, relpath), 'wt', encoding='utf-8') as f:
                     f.write(data)
                     # TODO: Version compare is required as well. Is it?
             if local_module:
