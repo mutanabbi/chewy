@@ -22,18 +22,6 @@ log = portage.output.EOutput()
 
 
 
-def uninstall(modules_dir, mod):
-    '''
-        Uninstall the chewy module and all related files
-        Note uninstall doesn't clean empty directories possible after uninstall process
-    '''
-    for path in [ os.path.join(modules_dir, f) for f in mod.addons + [mod.path] ]:
-        abspath = chewy.sandbox_path(modules_dir, path)
-        # TODO: os.path.exists returns False for zero-sized files
-        if os.path.exists(abspath):
-            os.unlink(abspath)
-
-
 def rcv_manifests(repobase_list):
     # Retrieve manifests for all used chewy repositories
     manifest_map = {}
@@ -46,255 +34,288 @@ def rcv_manifests(repobase_list):
 
 
 
-def rcv_module(obj, modules_dir, sf):
-    # "Overloading" by first argument
-    if isinstance(obj, chewy.Module):
-        local_module = obj
-        url = os.path.join(local_module.repobase, local_module.path)
-    elif isinstance(obj, str):
-        url = obj
-    else:
-        assert(False)
+class Application(object):
 
-    # Doesn't catch any exception because any error means module receiving is fall
-    ep = chewy.HttpEndpoint(url)
-    cs = sf.get_session(ep)
-    log.einfo('Get module file {}'.format(url))
-    data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
-    mod = chewy.Module(data)
-
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        # Write module to file
-        with open(chewy.sandbox_path(tmpdirname, mod.path), 'wt', encoding='utf-8') as f:
-            f.write(data)
-        # Receive all module-related files
-        for relpath in mod.addons:
-            url = os.path.join(mod.repobase, relpath)
-            ep = chewy.HttpEndpoint(url)
-            cs = sf.get_session(ep)
-            log.einfo('Get addon file  {}'.format(url))
-            data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
-
-            abs_tmp_path = chewy.sandbox_path(tmpdirname, relpath)
-
-            # Create necessary temporary directorie's sub tree
-            os.makedirs(
-                os.path.dirname(abs_tmp_path).strip('/')
-              , exist_ok=True
-              )
-
-            # Going to write just received data to the temporary dir
-            # TODO: Strip repobasename
-            with open(abs_tmp_path, 'wt', encoding='utf-8') as f:
-                f.write(data)
-                # TODO: Version compare is required as well. Is it?
-        if local_module:
-            uninstall(modules_dir, local_module)
-
-        # If success, install module to real modules path
-        chewy.copytree(tmpdirname, modules_dir)
+    __modules_dir = None
+    cmd_parser = None
+    args = None
 
 
+    def __init__(self):
+        self.cmd_parser = argparse.ArgumentParser(description='Manage the project specific CMake modules')
+        self.cmd_parser.add_argument(
+            '-m'
+          , '--modules-dir'
+          , metavar='PATH'
+          , help='CMake modules directory to operate with'
+          )
 
-def get_statuses(modules_dir):
-    '''
-        Return: Dictionary by unique repobase to module-related statuses' list
-    '''
-    # Get modules installed in a given dir
-    status_map = chewy.collect_installed_modules(modules_dir)
+        subparsers = self.cmd_parser.add_subparsers(help='Available sub-commands:', dest='cmd')
 
-    # Retrieve remote_modules_map for all used chewy repositories
-    manifest_map = rcv_manifests(status_map.keys())
+        list_parser = subparsers.add_parser(
+            'list'
+          , help="Show available modules by repositores' URLs."
+          )
+        get_parser = subparsers.add_parser(
+            'get'
+          , help='Get module from repository and add it to the project as new one.'
+          )
+        update_parser = subparsers.add_parser(
+            'update'
+          , help='Update [all] installed modules from their repo-sources'
+          )
+        status_parser = subparsers.add_parser('status', help='Check status of [all] installed files')
+        delete_parser = subparsers.add_parser(
+            'delete'
+          , help='Delete installed modules'
+          )
 
-    # Iterate over installed modules (statuses actually) grouped by repository
-    for repobase, modules in status_map.items():
-        # Iterate over list of module statuses
-        for status in modules:
-            local_mod = status.module
-            # Find local module in a remote repository
-            remote_mod = chewy.find(manifest_map[repobase].modules, lambda x: x.path == local_mod.path)
-            # If not found, mark current module as deleted
-            if not remote_mod:
-                status.set_remote_version(None)
-            else:
-                assert(remote_mod.path == local_mod.path)
-                # Remember the remote version
-                status.set_remote_version(remote_mod.version)
-    return status_map
-
-
-
-# TODO If no repo given, try to find a modules base,
-# scan it and collect used repo bases...?
-def do_list(url_list):
-    '''Execute `list' command'''
-    if not url_list:
-        log.eerror('At least one repository URL should be given')
-    # Make URLs unique
-    urls = set(url_list)
-
-    for repobase, manifest in rcv_manifests(urls).items():
-        log.einfo("Modules from the `{}' repository".format(repobase))
-        print(chewy.FancyGrid(
-            [ [mod.path, mod.version, mod.description] for mod in manifest.modules ]
-          ))
-
-
-
-def do_get(url_list, modules_dir):
-    '''Execute `get' command'''
-    if not url_list:
-        log.eerror('At least one url should be passed')
-
-    with chewy.session.Factory() as sf:
-        for url in url_list:
-            try:
-                rcv_module(url, modules_dir, sf)
-
-            # TODO pass 'can't create modules dir' exception through
-            except RuntimeError as ex:
-                log.eerror("Can't get {} file: {}".format(url, ex))
-
-
-
-def do_status(modules_dir):
-    '''Execute `status' command'''
-    for repobase, status_list in get_statuses(modules_dir).items():
-        log.einfo('List of {}'.format(repobase))
-        # TODO Colorise output (especially new versions)
-        print(
-            chewy.FancyGrid([
-                [
-                    m.status_as_string()
-                  , m.module.path
-                  , m.module.version
-                  , m.available_version()
-                  , m.module.description
-                ]
-                for m in status_list
-              ])
+        list_parser.add_argument(
+            'rep_url'
+          , metavar='REPO-URL'
+          , help='Repositories URL list.'
+                 'Empty one means to list all repositories which URLs are '
+                 'founded in installed modules'
+          , nargs='*'
+          )
+        get_parser.add_argument('file_url', metavar='FILE-URL', help='Files URL list', nargs='+')
+        update_parser.add_argument(
+            'file_url'
+          , metavar='FILE-URL'
+          , help='Files URI list. Empty one means to update all installed modules'
+          , nargs='*'
+          )
+        status_parser.add_argument(
+            'file_url'
+          , metavar='FILE-URL'
+          , help='Files URI list. Empty one means to check status of all installed modules'
+          , nargs='*'
+          )
+        delete_parser.add_argument(
+            'file_url'
+          , metavar='FILE-URL'
+          , help='Module paths list'
+          , nargs='+'
           )
 
 
 
-def do_update(file_list, modules_dir):
-    '''Execute `update' command'''
-    with chewy.session.Factory() as sf:
-        for repobase, status_list in get_statuses(modules_dir).items():
-            for mod in [ st.module for st in status_list if st.needs_update() ]:
+    def get_modules_dir(self):
+        if not self.__modules_dir:
+            if self.args.modules_dir:
+                # TODO Check for symlinked directory
+                if os.path.isdir(self.args.modules_dir):
+                    self.__modules_dir = self.args.modules_dir
+                else:
+                    raise RuntimeError("Specified path is not a directory: `{}'".format(self.args.modules_dir))
+            else:
                 try:
-                    rcv_module(mod, modules_dir, sf)
+                    self.__modules_dir = chewy.modules_dir_lookup()
+                    log.einfo("Guessed CMake modules directory: `{}'".format(self.__modules_dir))
+                except RuntimeError as e:
+                    raise RuntimeError from e
+
+        return self.__modules_dir
+
+
+
+    def uninstall(self, mod):
+        '''
+            Uninstall the chewy module and all related files
+            Note uninstall doesn't clean empty directories possible after uninstall process
+        '''
+        for path in [ os.path.join(self.get_modules_dir(), f) for f in mod.addons + [mod.path] ]:
+            abspath = chewy.sandbox_path(self.get_modules_dir(), path)
+            # TODO: os.path.exists returns False for zero-sized files
+            if os.path.exists(abspath):
+                os.unlink(abspath)
+
+
+
+    def rcv_module(self, obj, sf):
+        # "Overloading" by first argument
+        local_module = None
+        if isinstance(obj, chewy.Module):
+            local_module = obj
+            url = os.path.join(local_module.repobase, local_module.path)
+        elif isinstance(obj, str):
+            url = obj
+        else:
+            assert(False)
+
+        # Doesn't catch any exception because any error means module receiving is fall
+        ep = chewy.HttpEndpoint(url)
+        cs = sf.get_session(ep)
+        log.einfo('Get module file {}'.format(url))
+        data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
+        mod = chewy.Module(data)
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            # Write module to file
+            with open(chewy.sandbox_path(tmpdirname, mod.path), 'wt', encoding='utf-8') as f:
+                f.write(data)
+            # Receive all module-related files
+            for relpath in mod.addons:
+                url = os.path.join(mod.repobase, relpath)
+                ep = chewy.HttpEndpoint(url)
+                cs = sf.get_session(ep)
+                log.einfo('Get addon file  {}'.format(url))
+                data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
+
+                abs_tmp_path = chewy.sandbox_path(tmpdirname, relpath)
+
+                # Create necessary temporary directorie's sub tree
+                os.makedirs(
+                    os.path.dirname(abs_tmp_path).strip('/')
+                  , exist_ok=True
+                  )
+
+                # Going to write just received data to the temporary dir
+                # TODO: Strip repobasename
+                with open(abs_tmp_path, 'wt', encoding='utf-8') as f:
+                    f.write(data)
+                    # TODO: Version compare is required as well. Is it?
+            if local_module:
+                self.uninstall(local_module)
+
+            # If success, install module to real modules path
+            chewy.copytree(tmpdirname, self.get_modules_dir())
+
+
+
+    def get_statuses(self):
+        '''
+            Return: Dictionary by unique repobase to module-related statuses' list
+        '''
+        # Get modules installed in a given dir
+        status_map = chewy.collect_installed_modules(self.get_modules_dir())
+
+        # Retrieve remote_modules_map for all used chewy repositories
+        manifest_map = rcv_manifests(status_map.keys())
+
+        # Iterate over installed modules (statuses actually) grouped by repository
+        for repobase, modules in status_map.items():
+            # Iterate over list of module statuses
+            for status in modules:
+                local_mod = status.module
+                # Find local module in a remote repository
+                remote_mod = chewy.find(manifest_map[repobase].modules, lambda x: x.path == local_mod.path)
+                # If not found, mark current module as deleted
+                if not remote_mod:
+                    status.set_remote_version(None)
+                else:
+                    assert(remote_mod.path == local_mod.path)
+                    # Remember the remote version
+                    status.set_remote_version(remote_mod.version)
+        return status_map
+
+
+
+    def do_list(self):
+        '''
+            Execute `list' command
+            If no repo given, the function try to find a modules base,
+            scan it and collect used repo bases
+        '''
+        url_list = self.args.rep_url
+        if not url_list:
+            url_list = chewy.collect_installed_modules(self.get_modules_dir()).keys()
+
+        # Make URLs unique
+        urls = set(url_list)
+
+        for repobase, manifest in rcv_manifests(urls).items():
+            log.einfo("Modules from the `{}' repository".format(repobase))
+            print(chewy.FancyGrid(
+                [ [mod.path, mod.version, mod.description] for mod in manifest.modules ]
+              ))
+
+
+
+    def do_get(self):
+        '''Execute `get' command'''
+        url_list = self.args.file_url
+        if not url_list:
+            raise RuntimeError('At least one url should be passed')
+
+        with chewy.session.Factory() as sf:
+            for url in url_list:
+                try:
+                    self.rcv_module(url, sf)
+
                 # TODO pass 'can't create modules dir' exception through
                 except RuntimeError as ex:
-                    log.eerror("Can't update module {}: {}".format(url, ex))
+                    log.eerror("Can't get {} file: {}".format(url, ex))
 
 
 
-def do_delete(file_list, modules_dir):
-    for f in file_list:
-        try:
-            abspath = os.path.abspath(f)
-            if not abspath.startswith(modules_dir):
-                abspath = chewy.sandbox_path(modules_dir, f)
-            uninstall(modules_dir, chewy.open_module(abspath))
-        except (RuntimeError, IOError) as ex:
-            log.eerror("Can't uninstall {}: {}".format(f, ex))
-            continue
+    def do_status(self):
+        '''Execute `status' command'''
+        for repobase, status_list in self.get_statuses().items():
+            log.einfo('List of {}'.format(repobase))
+            # TODO Colorise output (especially new versions)
+            print(
+                chewy.FancyGrid([
+                    [
+                        m.status_as_string()
+                      , m.module.path
+                      , m.module.version
+                      , m.available_version()
+                      , m.module.description
+                    ]
+                    for m in status_list
+                  ])
+              )
 
 
 
-def main():
-    cmd_parser = argparse.ArgumentParser(description='Manage the project specific CMake modules')
-    cmd_parser.add_argument(
-        '-m'
-      , '--modules-dir'
-      , metavar='PATH'
-      , help='CMake modules directory to operate with'
-      )
+    def do_update(self):
+        '''Execute `update' command'''
+        # TODO: Use it
+        file_list = self.args.file_url
+        with chewy.session.Factory() as sf:
+            for repobase, status_list in self.get_statuses().items():
+                for mod in [ st.module for st in status_list if st.needs_update() ]:
+                    try:
+                        self.rcv_module(mod, sf)
+                    # TODO pass 'can't create modules dir' exception through
+                    except RuntimeError as ex:
+                        log.eerror("Can't update module {}: {}".format(url, ex))
 
-    subparsers = cmd_parser.add_subparsers(help='Available sub-commands:', dest='cmd')
 
-    list_parser = subparsers.add_parser(
-        'list'
-      , help="Show available modules by repositores' URLs."
-      )
-    get_parser = subparsers.add_parser(
-        'get'
-      , help='Get module from repository and add it to the project as new one.'
-      )
-    update_parser = subparsers.add_parser(
-        'update'
-      , help='Update [all] installed modules from their repo-sources'
-      )
-    status_parser = subparsers.add_parser('status', help='Check status of [all] installed files')
-    delete_parser = subparsers.add_parser(
-        'delete'
-      , help='Delete installed modules'
-      )
 
-    list_parser.add_argument(
-        'rep_url'
-      , metavar='REPO-URL'
-      , help='Repositories URL list.'
-             'Empty one means to list all repositories which URLs are '
-             'founded in installed modules'
-      , nargs='*'
-      )
-    get_parser.add_argument('file_url', metavar='FILE-URL', help='Files URL list', nargs='+')
-    update_parser.add_argument(
-        'file_url'
-      , metavar='FILE-URL'
-      , help='Files URI list. Empty one means to update all installed modules'
-      , nargs='*'
-      )
-    status_parser.add_argument(
-        'file_url'
-      , metavar='FILE-URL'
-      , help='Files URI list. Empty one means to check status of all installed modules'
-      , nargs='*'
-      )
-    delete_parser.add_argument(
-        'file_url'
-      , metavar='FILE-URL'
-      , help='Module paths list'
-      , nargs='+'
-      )
-
-    args = cmd_parser.parse_args()
-
-    if args.cmd == 'list':
-        # To get a list of modules, the working directory is not required
-        do_list(args.rep_url)
-    else:
-        # Initialize working directory
-        if args.modules_dir:
-            # TODO Check for symlinked directory
-            if os.path.isdir(args.modules_dir):
-                modules_dir = args.modules_dir
-            else:
-                log.eerror("Specified path is not a directory: `{}'".format(args.modules_dir))
-                sys.exit(1)
-        else:
+    def do_delete(self):
+        '''Execute `delete' command'''
+        for f in self.args.file_url:
             try:
-                modules_dir = chewy.modules_dir_lookup()
-                log.einfo("Guessed CMake modules directory: `{}'".format(modules_dir))
-            except RuntimeError as e:
-                log.eerror(e.args[0])
-                sys.exit(1)
+                abspath = os.path.abspath(f)
+                if not abspath.startswith(self.get_modules_dir()):
+                    abspath = chewy.sandbox_path(self.get_modules_dir(), f)
+                self.uninstall(chewy.open_module(abspath))
+            except (RuntimeError, IOError) as ex:
+                log.eerror("Can't uninstall {}: {}".format(f, ex))
+                continue
 
-        # Continue to dispatch a command...
-        if args.cmd == 'get':
-            do_get(args.file_url, modules_dir)
-        elif args.cmd == 'status':
-            do_status(modules_dir)
-        elif args.cmd == 'update':
-            do_update(args.file_url, modules_dir)
-        elif args.cmd == 'delete':
-            do_delete(args.file_url, modules_dir)
 
-    # Done!
-    sys.exit(0)
+
+    def run(self):
+        self.args = self.cmd_parser.parse_args()
+        {
+            'list'  : self.do_list  ,
+            'get'   : self.do_get   ,
+            'status': self.do_status,
+            'update': self.do_update,
+            'delete': self.do_delete
+        }[self.args.cmd]()
+        # Done!
+        sys.exit(0)
+
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        a = Application()
+        a.run()
+    except RuntimeError as ex:
+        log.eerror('Error: {}'.format(ex))
+        sys.exit(1)
