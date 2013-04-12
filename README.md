@@ -1,26 +1,29 @@
 What is Chewy?
 ==============
 
-Chewy is a CMake Helpers Easy Way sYnchronizer
-Chewy was deigned as a part of C++/Python projects' CMake-based build system manager.
+Chewy is a _CMake Helpers Easy Way sYnchronizer_
+Chewy was designed to help an expecienced programmers to manage [CMake](http://cmake.org) modules
+in their projects (just like package managers do).
 It allows to check versions of CMake modules and to keep their freshness by synchronizing
-with a central repository, so you always have last versions of them in all of your projects.
+with a repository (or even few repositories), so you always have last versions of them in
+all of your projects.
 
 Motivation
 ==========
-If you are an experienced developer who use cmake-based build-system in your daily work, you should
-be close with such kind of situation. You are developing a cmake-module for your current project (it
+
+If you are an experienced developer who use CMake as a build-system in your daily work, you should
+be close with such kind of a situation. You are developing a CMake module for your current project (it
 could be a some specific library's finder or just some kind of helper). But some time latter you are
-copying that module to just created project. As a result, some black day you have found yourself as
-an owner of a work-environment directory fulled of a great many of local copies of different projects
-with tens of non-synchronized cmake-modules inside. New ones have fresh versions. But you would like
-to update versions of modules from more ancient ones.
+copying that module to another (possible just started) project. As a result, some black day you have
+found yourself as an owner of a work-environment directory fulled of a great many of local copies of
+different projects with tens of non-synchronized CMake modules inside. New ones have fresh versions.
+But you would like to update versions of modules from more ancient ones.
 
 There are situations also when you are coming back to an years ago abandoned project and injecting
 some interesting changes in a rush of programming creativity. But day latter you are realizing what
 such a brilliant find should be propagated to all other projects.
 
-In moments like that you could feel some unclear desire in your mind. It would be so great to keep
+In moments like that, you could feel some unclear desire in your mind. It would be so great to keep
 all of your modules (in an accurate sorted and classified way with tiny name tags attached to them)
 in your own storage and just to have possibility to synchronize them from different projects!
 A sharp programmer's brain are suggesting a possible solution. You can take all your modules away to
@@ -71,7 +74,7 @@ where,
 
 and finally... ;-)
 
-    chewy jump-to-light-speed
+    $ chewy jump-to-light-speed
     Uuuuuuuuuur Ahhhhhrrrrr
     Uhrrrrr Ahhhhrrrr
     Aaaaarhg...
@@ -80,9 +83,14 @@ and finally... ;-)
 How to get help
 ===============
 
-    chewy --help
-    chewy command --help
-    man chewy
+    $ chewy --help
+    $ chewy command --help
+    $ man chewy # TODO
 
+
+See also
+========
+
+* [Repository](https://github.com/mutanabbi/chewy-cmake-repo) of reusable CMake modules managed with `chewy`
 
 >Chewy is the best second pilot ever!
