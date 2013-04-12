@@ -40,7 +40,7 @@ Usage
 =====
 to list repositorie's files by checking manifest
 
-    chewy list [URL1 ...]
+    $ chewy list [URL1 ...]
 
 As result you gonna see a list of filename, version and module description.
 
@@ -48,36 +48,38 @@ As result you gonna see a list of filename, version and module description.
 To add new file to your project tree or to roll back all changes of existed file to repositorie's
 original one's condition
 
-    chewy get file-URL ...
+    $ chewy get file-URL ...
 
 
 to receive newest versions of your project's files by checking a repository
 
-    chewy update [file-URL ...]
+    $ chewy update [file-URL ...]
 
 
 to check availability of newest versions of your project's files
 
-    chewy status [file-URL ...]
+    $ chewy status [file-URL ...]
 
 As result you gonna see a list of
 
-    U|M filename LocalVersion RemoteVersion
-
+    U|M filename local-version remote-version
 
 where,
- - **U** - for **U**pdate
- - **M** - for **M**odified
+- **U** - for **U**pdate
+- **M** - for **M**odified
 
+
+and finally... ;-)
 
     chewy jump-to-light-speed
-      Uuuuuuuuuur Ahhhhhrrrrr
-      Uhrrrrr Ahhhhrrrr
-      Aaaaarhg...
+    Uuuuuuuuuur Ahhhhhrrrrr
+    Uhrrrrr Ahhhhrrrr
+    Aaaaarhg...
 
 
 How to get help
 ===============
+
     chewy --help
     chewy command --help
     man chewy
