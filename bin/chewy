@@ -12,13 +12,24 @@ import chewy
 import chewy.session
 
 import argparse
-import portage.output
 import urllib.parse
 import tempfile
 
 
+try:
+    import portage.output
+    log = portage.output.EOutput()
 
-log = portage.output.EOutput()
+except ImportError:
+    class FakeLogger(object):
+        def einfo(self, msg):
+            print(msg)
+        def eerror(self, msg):
+            print(msg, file=sys.stderr)
+        def ewarn(self, msg):
+            print(msg)
+
+    log = FakeLogger()
 
 
 
@@ -109,11 +120,8 @@ class Application(object):
                 else:
                     raise RuntimeError("Specified path is not a directory: `{}'".format(self.args.modules_dir))
             else:
-                try:
-                    self.__modules_dir = chewy.modules_dir_lookup()
-                    log.einfo("Guessed CMake modules directory: `{}'".format(self.__modules_dir))
-                except RuntimeError as e:
-                    raise RuntimeError from e
+                self.__modules_dir = chewy.modules_dir_lookup()
+                log.einfo("Guessed CMake modules directory: `{}'".format(self.__modules_dir))
 
         return self.__modules_dir
 
@@ -133,7 +141,7 @@ class Application(object):
 
 
     def rcv_module(self, obj, sf):
-        # "Overloading" by first argument
+        # "Overloading" by the first argument
         local_module = None
         if isinstance(obj, chewy.Module):
             local_module = obj
@@ -308,7 +316,6 @@ class Application(object):
             'delete': self.do_delete
         }[self.args.cmd]()
         # Done!
-        sys.exit(0)
 
 
 
@@ -319,3 +326,4 @@ if __name__ == "__main__":
     except RuntimeError as ex:
         log.eerror('Error: {}'.format(ex))
         sys.exit(1)
+    sys.exit(0)

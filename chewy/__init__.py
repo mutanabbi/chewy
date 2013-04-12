@@ -62,13 +62,7 @@ def collect_installed_modules(modules_dir):
             if not mod.repobase in mod_list:
                 mod_list[mod.repobase] = []
             mod_list[mod.repobase].append(ModuleStatus(mod))
-        except NoMetaError:
-            continue
-        except ModuleError as ex:
-            # TODO: logging
-            #log.ewarn('Module {} has error: {}'.format(module_file, ex.args[0]))
-            continue
-        except IOError as ex:
+        except (NoMetaError, ModuleError, IOError) as ex:
             # TODO: logging
             #log.ewarn('Module {} has error: {}'.format(module_file, ex))
             continue
