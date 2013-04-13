@@ -78,7 +78,7 @@ _chewy()
     local program=$1
     type "${program}" &>/dev/null || return 0
 
-    local _chewy_commands="get list status update"
+    local _chewy_commands="install uninstall list status update in un ls st"
     local _chewy_long_opts="--modules-dir"
     local _chewy_short_opts="-m"
 
@@ -113,7 +113,7 @@ _chewy()
             return
         fi
         case "$cmd" in
-        get | list)
+        install | list | in | ls)
             if [ -n "${modules_dir}" ]; then
                 _get_repobases_started_with "${cur}"
             fi
@@ -126,7 +126,7 @@ _chewy()
                 -- "${cur}") )
             __ltrim_colon_completions ${cur}
             ;;
-        status | update)
+        uninstall | status | update | un | st | up)
             # If modules-dir found, change current dir temporary...
             if [ -n "${modules_dir}" -a -d "${modules_dir}" ]; then
                 cd ${modules_dir}

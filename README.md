@@ -43,25 +43,31 @@ Usage
 =====
 to list repositorie's files by checking manifest
 
-    $ chewy list [URL1 ...]
+    $ chewy list [repo-URL ...]
 
 As result you gonna see a list of filename, version and module description.
 
 
-To add new file to your project tree or to roll back all changes of existed file to repositorie's
-original one's condition
+To add new module and all related files to your project tree or to roll back all changes of existed file to
+repositorie's original one's condition
 
-    $ chewy get file-URL ...
+    $ chewy install file-URL ...
+
+
+To delete installed module module and all related files from your project tree. Note: this command doesn't
+delete any of modules' directory's empty sub directories. This is user's responsibility.
+
+    $ chewy uninstall file-PATH ...
 
 
 to receive newest versions of your project's files by checking a repository
 
-    $ chewy update [file-URL ...]
+    $ chewy update [file-PATH ...]
 
 
 to check availability of newest versions of your project's files
 
-    $ chewy status [file-URL ...]
+    $ chewy status [file-PATH ...]
 
 As result you gonna see a list of
 

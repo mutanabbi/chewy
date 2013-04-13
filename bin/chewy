@@ -61,26 +61,14 @@ class Application(object):
           , help='CMake modules directory to operate with'
           )
 
+
         subparsers = self.cmd_parser.add_subparsers(help='Available sub-commands:', dest='cmd')
 
         list_parser = subparsers.add_parser(
             'list'
           , help="Show available modules by repositores' URLs."
+          , aliases=['ls']
           )
-        get_parser = subparsers.add_parser(
-            'get'
-          , help='Get module from repository and add it to the project as new one.'
-          )
-        update_parser = subparsers.add_parser(
-            'update'
-          , help='Update [all] installed modules from their repo-sources'
-          )
-        status_parser = subparsers.add_parser('status', help='Check status of [all] installed files')
-        delete_parser = subparsers.add_parser(
-            'delete'
-          , help='Delete installed modules'
-          )
-
         list_parser.add_argument(
             'rep_url'
           , metavar='REPO-URL'
@@ -89,25 +77,50 @@ class Application(object):
                  'founded in installed modules'
           , nargs='*'
           )
-        get_parser.add_argument('file_url', metavar='FILE-URL', help='Files URL list', nargs='+')
+        list_parser.set_defaults(func=self.do_list)
+
+        install_parser = subparsers.add_parser(
+            'install'
+          , help='Install module from repository and add it to the project as new one.'
+          , aliases=['in']
+          )
+        install_parser.add_argument('file_url', metavar='FILE-URL', help='Files URL list', nargs='+')
+        install_parser.set_defaults(func=self.do_install)
+
+        update_parser = subparsers.add_parser(
+            'update'
+          , help='Update [all] installed modules from their repo-sources'
+          , aliases=['up']
+          )
         update_parser.add_argument(
             'file_url'
           , metavar='FILE-URL'
           , help='Files URI list. Empty one means to update all installed modules'
           , nargs='*'
           )
+        update_parser.set_defaults(func=self.do_update)
+
+        status_parser = subparsers.add_parser('status', help='Check status of [all] installed files', aliases=['st'])
         status_parser.add_argument(
             'file_url'
           , metavar='FILE-URL'
           , help='Files URI list. Empty one means to check status of all installed modules'
           , nargs='*'
           )
-        delete_parser.add_argument(
+        status_parser.set_defaults(func=self.do_status)
+
+        uninstall_parser = subparsers.add_parser(
+            'uninstall'
+          , help='Uninstall installed modules'
+          , aliases=['un']
+          )
+        uninstall_parser.add_argument(
             'file_url'
           , metavar='FILE-URL'
           , help='Module paths list'
           , nargs='+'
           )
+        uninstall_parser.set_defaults(func=self.do_uninstall)
 
 
 
@@ -251,8 +264,8 @@ class Application(object):
 
 
 
-    def do_get(self):
-        '''Execute `get' command'''
+    def do_install(self):
+        '''Execute `install' command'''
         url_list = self.args.file_url
         if not url_list:
             raise RuntimeError('At least one url should be given')
@@ -264,7 +277,7 @@ class Application(object):
 
                 # TODO pass 'can't create modules dir' exception through
                 except RuntimeError as ex:
-                    log.eerror("Can't get the file `{}': {}".format(url, ex))
+                    log.eerror("Can't receive the file `{}': {}".format(url, ex))
 
 
 
@@ -308,8 +321,8 @@ class Application(object):
 
 
 
-    def do_delete(self):
-        '''Execute `delete' command'''
+    def do_uninstall(self):
+        '''Execute `uninstall' command'''
         for f in self.args.file_url:
             try:
                 abspath = os.path.abspath(f)
@@ -324,14 +337,7 @@ class Application(object):
 
     def run(self):
         self.args = self.cmd_parser.parse_args()
-        {
-            'list'  : self.do_list
-          , 'get'   : self.do_get
-          , 'status': self.do_status
-          , 'update': self.do_update
-          , 'delete': self.do_delete
-        }[self.args.cmd]()
-        # Done!
+        self.args.func()
 
 
 
