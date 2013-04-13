@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 #
 
-import http.client
-import os
-import urllib.parse
 import chewy
+import http.client
+import urllib.parse
+import socket
+import os
 
 
 MANIFEST_PATH = 'manifest'
@@ -16,6 +17,10 @@ _HEADERS = {
   , 'DNT': 1
   , 'Connection': 'keep-alive'
   }
+
+
+class NetworkError(RuntimeError):
+    pass
 
 
 
@@ -70,11 +75,15 @@ class Session(object):
             raise TypeError('Endpoint to contact has invalid type')
 
         self.__ep = endpoint
-        if self.__ep.is_ssl:
-            self.__connection = http.client.HTTPSConnection(self.__ep.hostname, self.__ep.port)
-        else:
-            self.__connection = http.client.HTTPConnection(self.__ep.hostname, self.__ep.port)
-        self.__connection.connect()
+        import socket
+        try:
+            if self.__ep.is_ssl:
+                self.__connection = http.client.HTTPSConnection(self.__ep.hostname, self.__ep.port)
+            else:
+                self.__connection = http.client.HTTPConnection(self.__ep.hostname, self.__ep.port)
+            self.__connection.connect()
+        except socket.error as ex:
+            raise NetworkError("hostname: `{}'; port: `{}': {}".format(self.__ep.hostname, self.__ep.port, ex))
 
 
     def close(self):
@@ -94,8 +103,11 @@ class Session(object):
 
     def retrieve_remote_file(self, file_path):
         '''Retrieve the file specified'''
-        self.__connection.request('GET', file_path)
-        r = self.__connection.getresponse()
+        try:
+            self.__connection.request('GET', file_path)
+            r = self.__connection.getresponse()
+        except socket.error as ex:
+            raise NetworkError("hostname: `{}'; port: `{}': {}".format(self.__ep.hostname, self.__ep.port, ex))
         # request should be read any way if we want reuse this connection
         data = r.read()
         if r.status != http.client.OK:

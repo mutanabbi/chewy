@@ -167,7 +167,7 @@ class Application(object):
         # Doesn't catch any exception because any error means module receiving is fall
         ep = chewy.HttpEndpoint(url)
         cs = sf.get_session(ep)
-        log.einfo('Getting the module file {}'.format(url))
+        log.einfo('Receiving the module file {}'.format(url))
         data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
         mod = chewy.Module(data)
 
@@ -193,7 +193,7 @@ class Application(object):
                 url = os.path.join(mod.repobase, relpath)
                 ep = chewy.HttpEndpoint(url)
                 cs = sf.get_session(ep)
-                log.einfo('Getting the addon file  {}'.format(url))
+                log.einfo('Receiving the addon file {}'.format(url))
                 data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
 
                 # Create necessary temporary directorie's sub tree
