@@ -154,7 +154,7 @@ class Application(object):
         # Doesn't catch any exception because any error means module receiving is fall
         ep = chewy.HttpEndpoint(url)
         cs = sf.get_session(ep)
-        log.einfo('Get module file {}'.format(url))
+        log.einfo('Getting the module file {}'.format(url))
         data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
         mod = chewy.Module(data)
 
@@ -180,7 +180,7 @@ class Application(object):
                 url = os.path.join(mod.repobase, relpath)
                 ep = chewy.HttpEndpoint(url)
                 cs = sf.get_session(ep)
-                log.einfo('Get addon file  {}'.format(url))
+                log.einfo('Getting the addon file  {}'.format(url))
                 data = cs.retrieve_remote_file(ep.geturl())             # Get a remote file into string
 
                 # Create necessary temporary directorie's sub tree
@@ -256,7 +256,7 @@ class Application(object):
         '''Execute `get' command'''
         url_list = self.args.file_url
         if not url_list:
-            raise RuntimeError('At least one url should be passed')
+            raise RuntimeError('At least one url should be given')
 
         with chewy.session.Factory() as sf:
             for url in url_list:
@@ -265,7 +265,7 @@ class Application(object):
 
                 # TODO pass 'can't create modules dir' exception through
                 except RuntimeError as ex:
-                    log.eerror("Can't get {} file: {}".format(url, ex))
+                    log.eerror("Can't get the file `{}': {}".format(url, ex))
 
 
 
@@ -273,12 +273,12 @@ class Application(object):
         '''Execute `status' command'''
         status_map = self.get_statuses().items()
 
-        if not urls:
-            log.eerror('No chewy repository URLs was found and nothing provided in the command line')
+        if not status_map:
+            log.eerror('No chewy repository URLs was found and nothing provided at the command line')
             sys.exit(1)
 
         for repobase, status_list in status_map:
-            log.einfo('List of {}'.format(repobase))
+            log.einfo('List of installed modules from the repository {}'.format(repobase))
             # TODO Colorise output (especially new versions)
             print(
                 chewy.FancyGrid([
@@ -306,7 +306,7 @@ class Application(object):
                         self.rcv_module(mod, sf)
                     # TODO pass 'can't create modules dir' exception through
                     except RuntimeError as ex:
-                        log.eerror("Can't update module {}: {}".format(url, ex))
+                        log.eerror("Can't update the module `{}': {}".format(url, ex))
 
 
 
@@ -319,7 +319,7 @@ class Application(object):
                     abspath = chewy.sandbox_path(self.get_modules_dir(), f)
                 self.uninstall(chewy.open_module(abspath))
             except (RuntimeError, IOError) as ex:
-                log.eerror("Can't uninstall {}: {}".format(f, ex))
+                log.eerror("Can't uninstall `{}': {}".format(f, ex))
                 continue
 
 
@@ -327,11 +327,11 @@ class Application(object):
     def run(self):
         self.args = self.cmd_parser.parse_args()
         {
-            'list'  : self.do_list  ,
-            'get'   : self.do_get   ,
-            'status': self.do_status,
-            'update': self.do_update,
-            'delete': self.do_delete
+            'list'  : self.do_list
+          , 'get'   : self.do_get
+          , 'status': self.do_status
+          , 'update': self.do_update
+          , 'delete': self.do_delete
         }[self.args.cmd]()
         # Done!
 
@@ -341,6 +341,9 @@ if __name__ == "__main__":
     try:
         a = Application()
         a.run()
+    except KeyboardInterrupt:
+        log.ewarn('Terminated by user request')
+        sys.exit(1)
     except RuntimeError as ex:
         log.eerror('Error: {}'.format(ex))
         sys.exit(1)
