@@ -240,6 +240,10 @@ class Application(object):
         # Make URLs unique
         urls = set(url_list)
 
+        if not urls:
+            log.eerror('No chewy repository URLs was found and nothing provided in the command line')
+            sys.exit(1)
+
         for repobase, manifest in rcv_manifests(urls).items():
             log.einfo("Modules from the `{}' repository".format(repobase))
             print(chewy.FancyGrid(
@@ -267,7 +271,13 @@ class Application(object):
 
     def do_status(self):
         '''Execute `status' command'''
-        for repobase, status_list in self.get_statuses().items():
+        status_map = self.get_statuses().items()
+
+        if not urls:
+            log.eerror('No chewy repository URLs was found and nothing provided in the command line')
+            sys.exit(1)
+
+        for repobase, status_list in status_map:
             log.einfo('List of {}'.format(repobase))
             # TODO Colorise output (especially new versions)
             print(
