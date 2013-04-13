@@ -241,8 +241,7 @@ class Application(object):
         urls = set(url_list)
 
         if not urls:
-            log.eerror('No chewy repository URLs was found and nothing provided in the command line')
-            sys.exit(1)
+            raise RuntimeError('No chewy repository URLs was found and nothing provided in the command line')
 
         for repobase, manifest in rcv_manifests(urls).items():
             log.einfo("Modules from the `{}' repository".format(repobase))
@@ -274,8 +273,7 @@ class Application(object):
         status_map = self.get_statuses().items()
 
         if not status_map:
-            log.eerror('No chewy repository URLs was found and nothing provided at the command line')
-            sys.exit(1)
+            raise RuntimeError('No chewy repository URLs was found and nothing provided at the command line')
 
         for repobase, status_list in status_map:
             log.einfo('List of installed modules from the repository {}'.format(repobase))
