@@ -54,7 +54,7 @@ repositorie's original one's condition
     $ chewy install file-URL ...
 
 
-To delete installed module module and all related files from your project tree. Note: this command doesn't
+To delete installed module and all related files from your project tree. Note: this command doesn't
 delete any of modules' directory's empty sub directories. This is user's responsibility.
 
     $ chewy uninstall file-PATH ...
