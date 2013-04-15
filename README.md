@@ -71,11 +71,13 @@ to check availability of newest versions of your project's files
 
 As result you gonna see a list of
 
-    U|M filename local-version remote-version
+    *|U|M|D filename local-version remote-version
 
 where,
-- **U** - for **U**pdate
-- **M** - for **M**odified
+- `*` - you have a last version of the module
+- `U` - there is an **U**pdate 
+- `M` - the local module was **M**odified
+- `D` - there is no corresponded module on the repository
 
 
 and finally... ;-)
