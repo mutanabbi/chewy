@@ -88,6 +88,87 @@ and finally... ;-)
     Aaaaarhg...
 
 
+Your own Chewy-repository
+=========================
+Lets image you have a few fancy CMake-modules, which you want to share between some of your
+C++ projects, and GitHub repository named `https://github/solo/han-shot-first.git`. So:
+
+    $ git clone https://github/solo/han-shot-first.git hsf
+    $ cd hsf
+
+Copy your modules to repository:
+
+    $ cp ~/FindDroidsYouRLooking4.cmake .
+    $ cp ~/order-66.cmake .
+
+And a complex one, which has two additional files in subdirectory
+
+    $ cp ~/ObiWanHelper.cmake .
+    $ mkdir jedi-stuff
+    $ cp ~/elegant-lightsaber.in jedi-stuff/
+    $ cp ~/barbaric-blaster.in jedi-stuff/
+
+Plsce them undere version control:
+
+    git add *.cmake
+    git add jedi-stuff
+    git -a -m 'Repository init'
+
+So, now you have three modules under version control, but it isn't Chewy-repository still.
+What should you do is to add a few Chewy-tags to your modules, like this:
+
+    $ for i in *.cmake; do \
+        echo "X-Chewy-Repobase: https://raw.github/solo/han-shot-firs/master/" >> $i \
+        echo "X-Chewy-Path: $i" >> $i \
+        echo "X-Chewy-Version: 1.0" >> $i \
+      done
+
+And one extra tag, described dependent files, for complex module:
+
+    $ for i in jedi-stuff/*; do
+         echo "X-Chewy-AddonFile: $i" >> ObiWanHelper.cmake
+      done
+
+Note the variable `i` above contains a directory name as soon a a filename: `jedi-stuff/elegan-lightsaber.in`
+
+At last, you have to give some descriptions for your modules:
+
+    $ echo "X-Chewy-Description: Help me Obi-Wan Kenobi. You’re my only hope!"    >> ObiWanHelper.cmake
+    $ echo "X-Chewy-Description: C3PO and R2D2 droid-libraries finder"            >> FindDroidsYouRLooking4.cmake
+    $ echo "X-Chewy-Description: Add execute-order-66 target to you build system" >> order-66.cmake
+
+And one last move — launch `chewy-update-manifest` util from Chewy package:
+
+    $ chewy-update-manifest
+
+That command gonna create a manifest file, so you want to add it under version control, fix all changes
+and push it to origin repository finally:
+
+    $ git add manifest
+    $ git ci -a -m 'Chewy-repository is done'
+    $ git push
+
+Now you can use you fresh shiny Chwey-repository:
+
+    $ chewy list https://raw.github/solo/han-shot-firs/master
+    $ cd ~/work/dark-side-cxx-project/
+    $ chewy add https://raw.github/solo/han-shot-firs/master/order-66.cmake
+
+Or even:
+
+    $ cd ~/work/rebel-alliance-cxx-senator/
+    $ chewy add https://raw.github/solo/han-shot-firs/master/ObiWanHelper.cmake
+
+And if you think some used modules have new version, you can just easy update it in any project:
+
+    $ chewy status
+    $ chewy update
+q
+
+
+> May the Force be with you!
+
+
 How to get help
 ===============
 
