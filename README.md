@@ -141,7 +141,7 @@ And one last move — launch `chewy-update-manifest` util from Chewy package:
 
     $ chewy-update-manifest
 
-That command gonna create a manifest file, so you want to add it under version control, fix all changes
+That command gonna create a manifest file, so you want to add it under version control, fixate all changes
 and push it to origin repository finally:
 
     $ git add manifest
