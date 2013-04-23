@@ -115,7 +115,7 @@ Place them undere version control:
     git -a -m 'Repository init'
 
 So, now you have three modules under version control, but it isn't Chewy-repository still.
-What should you do is to add a few Chewy-tags to your modules, like this:
+What you have to do is to add a few Chewy-tags to your modules like this:
 
     $ for i in *.cmake; do \
         echo "X-Chewy-Repobase: https://raw.github/solo/han-shot-first/master/" >> $i \
