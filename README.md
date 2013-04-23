@@ -118,24 +118,26 @@ So, now you have three modules under version control, but it isn't Chewy-reposit
 What you have to do is to add a few Chewy-tags to your modules like this:
 
     $ for i in *.cmake; do \
-        echo "X-Chewy-Repobase: https://raw.github/solo/han-shot-first/master/" >> $i \
-        echo "X-Chewy-Path: $i" >> $i \
-        echo "X-Chewy-Version: 1.0" >> $i \
+        echo "# X-Chewy-Repobase: https://raw.github/solo/han-shot-first/master/" >> $i \
+        echo "# X-Chewy-Path: $i" >> $i \
+        echo "# X-Chewy-Version: 1.0" >> $i \
       done
+
+Note we just added *comment* lines to the end of CMake-files
 
 And one extra tag, describing dependent files, for a complex module:
 
     $ for i in jedi-stuff/*; do \
-         echo "X-Chewy-AddonFile: $i" >> ObiWanHelper.cmake \
+         echo "# X-Chewy-AddonFile: $i" >> ObiWanHelper.cmake \
       done
 
 Note the variable `i` above contains a directory name as soon as a filename: `jedi-stuff/elegan-lightsaber.in`
 
 At last, you have to give some descriptions for your modules:
 
-    $ echo "X-Chewy-Description: Help me Obi-Wan Kenobi. You’re my only hope!"    >> ObiWanHelper.cmake
-    $ echo "X-Chewy-Description: C3PO and R2D2 droid-libraries finder"            >> FindDroidsYouRLooking4.cmake
-    $ echo "X-Chewy-Description: Add execute-order-66 target to you build system" >> order-66.cmake
+    $ echo "# X-Chewy-Description: Help me Obi-Wan Kenobi. You’re my only hope!"    >> ObiWanHelper.cmake
+    $ echo "# X-Chewy-Description: C3PO and R2D2 droid-libraries finder"            >> FindDroidsYouRLooking4.cmake
+    $ echo "# X-Chewy-Description: Add execute-order-66 target to you build system" >> order-66.cmake
 
 And one last move — launch `chewy-update-manifest` utility from Chewy-package:
 
