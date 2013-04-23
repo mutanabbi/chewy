@@ -123,7 +123,7 @@ What you have to do is to add a few Chewy-tags to your modules like this:
         echo "# X-Chewy-Version: 1.0" >> $i \
       done
 
-Note we just added *comment* lines to the end of CMake-files
+Note we just added __comment__ lines to the end of CMake-files, so they don't affect a code
 
 And one extra tag, describing dependent files, for a complex module:
 
@@ -150,7 +150,7 @@ and push it to origin repository finally:
     $ git ci -a -m 'Chewy-repository is done'
     $ git push
 
-Now you can use you fresh shiny Chwey-repository:
+Now you can use you fresh shiny Chewy-repository:
 
     $ chewy list https://raw.github/solo/han-shot-first/master
     $ cd ~/work/dark-side-cxx-project/
