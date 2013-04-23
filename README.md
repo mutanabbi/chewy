@@ -90,7 +90,7 @@ and finally... ;-)
 
 Your own Chewy-repository
 =========================
-Lets image you have a few fancy CMake-modules, which you want to share between some of your
+Lets imagine you have a few fancy CMake-modules, which you want to share between some of your
 C++ projects, and GitHub repository named `https://github/solo/han-shot-first.git`. So:
 
     $ git clone https://github/solo/han-shot-first.git hsf
