@@ -129,7 +129,7 @@ And one extra tag, described dependent files, for complex module:
          echo "X-Chewy-AddonFile: $i" >> ObiWanHelper.cmake \
       done
 
-Note the variable `i` above contains a directory name as soon a a filename: `jedi-stuff/elegan-lightsaber.in`
+Note the variable `i` above contains a directory name as soon as a filename: `jedi-stuff/elegan-lightsaber.in`
 
 At last, you have to give some descriptions for your modules:
 
@@ -137,7 +137,7 @@ At last, you have to give some descriptions for your modules:
     $ echo "X-Chewy-Description: C3PO and R2D2 droid-libraries finder"            >> FindDroidsYouRLooking4.cmake
     $ echo "X-Chewy-Description: Add execute-order-66 target to you build system" >> order-66.cmake
 
-And one last move — launch `chewy-update-manifest` util from Chewy package:
+And one last move — launch `chewy-update-manifest` utility from Chewy-package:
 
     $ chewy-update-manifest
 
@@ -159,7 +159,7 @@ Or even:
     $ cd ~/work/rebel-alliance-cxx-senator/
     $ chewy add https://raw.github/solo/han-shot-first/master/ObiWanHelper.cmake
 
-And if you think some used modules have new version, you can just easy update it in any project:
+And if you think some using modules have a new version, you can just update it in any project by easy way:
 
     $ chewy status
     $ chewy update
