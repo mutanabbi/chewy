@@ -118,7 +118,7 @@ So, now you have three modules under version control, but it isn't Chewy-reposit
 What should you do is to add a few Chewy-tags to your modules, like this:
 
     $ for i in *.cmake; do \
-        echo "X-Chewy-Repobase: https://raw.github/solo/han-shot-firs/master/" >> $i \
+        echo "X-Chewy-Repobase: https://raw.github/solo/han-shot-first/master/" >> $i \
         echo "X-Chewy-Path: $i" >> $i \
         echo "X-Chewy-Version: 1.0" >> $i \
       done
