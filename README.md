@@ -150,14 +150,14 @@ and push it to origin repository finally:
 
 Now you can use you fresh shiny Chwey-repository:
 
-    $ chewy list https://raw.github/solo/han-shot-firs/master
+    $ chewy list https://raw.github/solo/han-shot-first/master
     $ cd ~/work/dark-side-cxx-project/
-    $ chewy add https://raw.github/solo/han-shot-firs/master/order-66.cmake
+    $ chewy add https://raw.github/solo/han-shot-first/master/order-66.cmake
 
 Or even:
 
     $ cd ~/work/rebel-alliance-cxx-senator/
-    $ chewy add https://raw.github/solo/han-shot-firs/master/ObiWanHelper.cmake
+    $ chewy add https://raw.github/solo/han-shot-first/master/ObiWanHelper.cmake
 
 And if you think some used modules have new version, you can just easy update it in any project:
 
