@@ -108,7 +108,7 @@ And a complex one, which has two additional files in subdirectory
     $ cp ~/elegant-lightsaber.in jedi-stuff/
     $ cp ~/barbaric-blaster.in jedi-stuff/
 
-Place them undere version control:
+Place them under version control:
 
     git add *.cmake
     git add jedi-stuff
@@ -123,7 +123,7 @@ What you have to do is to add a few Chewy-tags to your modules like this:
         echo "X-Chewy-Version: 1.0" >> $i \
       done
 
-And one extra tag, described dependent files, for complex module:
+And one extra tag, describing dependent files, for a complex module:
 
     $ for i in jedi-stuff/*; do \
          echo "X-Chewy-AddonFile: $i" >> ObiWanHelper.cmake \
