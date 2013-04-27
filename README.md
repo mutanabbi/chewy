@@ -41,6 +41,7 @@ Sounds familiar? So when we glad to introduce our charming shaggy second pilot t
 
 Usage
 =====
+
 to list repositorie's files by checking manifest
 
     $ chewy list [repo-URL ...]
@@ -90,6 +91,7 @@ and finally... ;-)
 
 Your own Chewy-repository
 =========================
+
 Lets imagine you have a few fancy CMake-modules, which you want to share between some of your
 C++ projects, and GitHub repository named `https://github/solo/han-shot-first.git`. So:
 
