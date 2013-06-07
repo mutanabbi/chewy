@@ -12,7 +12,7 @@ import sys
 import unittest
 from mock import patch
 
-sys.path.append('..')
+sys.path.insert(0, '..')
 
 # Project specific imports
 import chewy

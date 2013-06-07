@@ -34,7 +34,6 @@ class HttpEndpoint(urllib.parse.SplitResult):
 
     def __init__(self, url):
         '''Parse the URL given and construct an endpoint instance'''
-        super().__init__(urllib.parse.urlsplit(url))
         self.url = url
         if self.scheme == 'http':
             self.is_ssl = False

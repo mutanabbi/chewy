@@ -10,7 +10,7 @@ import os
 import sys
 import unittest
 
-sys.path.append('..')
+sys.path.insert(0, '..')
 
 # Project specific imports
 import chewy

@@ -110,5 +110,3 @@ def copytree(src, dst, symlinks=False, ignore=None):
                 RuntimeError("Path {} is exist and it isn't directory as expected".format(dirnmae))
         for f in files:
             shutil.copy(os.path.join(path, f), os.path.join(dst, base, f))
-
-

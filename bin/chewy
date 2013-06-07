@@ -6,8 +6,6 @@
 import sys
 import os
 
-# TODO This doesn't needed for installed package
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import chewy
 import chewy.session
 
@@ -337,7 +335,10 @@ class Application(object):
 
     def run(self):
         self.args = self.cmd_parser.parse_args()
-        self.args.func()
+        if self.args.cmd is not None:
+            self.args.func()
+        else:
+            log.eerror('No command given')
 
 
 

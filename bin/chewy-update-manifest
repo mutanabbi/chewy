@@ -12,8 +12,6 @@ import re
 import sys
 import urllib.parse
 
-# TODO This doesn't needed for installed package
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import chewy
 import chewy.meta
 
