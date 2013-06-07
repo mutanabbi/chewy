@@ -34,5 +34,4 @@ distutils.core.setup(
       , 'Programming Language :: Python :: 3'
       , 'Topic :: Software Development :: Version Control'
       ]
-  , test_suite       = 'tests'
   )
