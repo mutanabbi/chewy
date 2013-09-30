@@ -22,7 +22,7 @@ distutils.core.setup(
   , scripts          = ['bin/chewy', 'bin/chewy-update-manifest']
   , license          = 'GPL-3'
   , classifiers      = [
-        'Development Status :: 4 - Beta'
+        'Development Status :: 5 - Production/Stable'
       , 'Environment :: Console'
       , 'Intended Audience :: Developers'
       , 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
@@ -31,7 +31,7 @@ distutils.core.setup(
       , 'Operating System :: POSIX :: Linux'
       , 'Programming Language :: Python'
         # TODO What about other Python versions?
-      , 'Programming Language :: Python :: 3'
+      , 'Programming Language :: Python :: 3.3'
       , 'Topic :: Software Development :: Version Control'
       ]
   )
