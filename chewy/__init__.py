@@ -18,7 +18,7 @@ import os
 import fnmatch
 
 EXPECTED_CMAKE_MODULES_PATH = 'cmake/modules'
-VERSION="0.1"
+VERSION="0.3"
 
 
 class NoMetaError(RuntimeError):

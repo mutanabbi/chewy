@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 #
 
-import chewy
 import http.client
-import urllib.parse
-import socket
 import os
+import socket
+import urllib.parse
+
+import chewy
 
 
 MANIFEST_PATH = 'manifest'

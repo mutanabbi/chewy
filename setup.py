@@ -6,21 +6,27 @@
 import distutils.core
 import sys
 
-# this affects the names of all the directories we do stuff with
-sys.path.insert(0, './')
 import chewy
+
+
+def readfile(filename):
+    with open(filename) as f:
+        return f.read()
+
 
 distutils.core.setup(
     name             = 'chewy'
   , version          = chewy.VERSION
   , description      = 'Python script to manage CMake modules'
+  , long_description = readfile('README.md')
   , keywords         = 'CMake modules synchronizer'
   , maintainer       = 'Alex Turbov'
   , maintainer_email = 'I.zaufi@gmail.com'
   , url              = 'https://github.com/mutanabbi/chewy'
+  , download_url     = 'https://github.com/mutanabbi/chewy/archive/version-{}.tar.gz'.format(chewy.VERSION)
   , packages         = ['chewy']
   , scripts          = ['bin/chewy', 'bin/chewy-update-manifest']
-  , license          = 'GPL-3'
+  , license          = 'GNU General Public License v3 or later (GPLv3+)'
   , classifiers      = [
         'Development Status :: 5 - Production/Stable'
       , 'Environment :: Console'
@@ -31,7 +37,8 @@ distutils.core.setup(
       , 'Operating System :: POSIX :: Linux'
       , 'Programming Language :: Python'
         # TODO What about other Python versions?
-      , 'Programming Language :: Python :: 3.3'
+      , 'Programming Language :: Python :: 3'
       , 'Topic :: Software Development :: Version Control'
       ]
+  , install_requires = ['argparse', 'setuptools']
   )

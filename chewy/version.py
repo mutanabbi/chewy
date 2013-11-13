@@ -4,8 +4,6 @@
 # Chewy Verstion class
 #
 
-import chewy
-import chewy.meta as meta
 import functools
 
 
