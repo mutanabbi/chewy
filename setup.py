@@ -3,8 +3,10 @@
 # Install script for `chewy`
 #
 
-import distutils.core
-import sys
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 import chewy
 
@@ -14,16 +16,16 @@ def readfile(filename):
         return f.read()
 
 
-distutils.core.setup(
+setup(
     name             = 'chewy'
-  , version          = chewy.VERSION
+  , version          = chewy.__version__
   , description      = 'Python script to manage CMake modules'
   , long_description = readfile('README.md')
   , keywords         = 'CMake modules synchronizer'
   , maintainer       = 'Alex Turbov'
   , maintainer_email = 'I.zaufi@gmail.com'
   , url              = 'https://github.com/mutanabbi/chewy'
-  , download_url     = 'https://github.com/mutanabbi/chewy/archive/version-{}.tar.gz'.format(chewy.VERSION)
+  , download_url     = 'https://github.com/mutanabbi/chewy/archive/version-{}.tar.gz'.format(chewy.__version__)
   , packages         = ['chewy']
   , scripts          = ['bin/chewy', 'bin/chewy-update-manifest']
   , license          = 'GNU General Public License v3 or later (GPLv3+)'
@@ -41,4 +43,5 @@ distutils.core.setup(
       , 'Topic :: Software Development :: Version Control'
       ]
   , install_requires = ['argparse', 'setuptools']
+  , test_suite       = 'test'
   )

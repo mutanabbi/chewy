@@ -17,8 +17,10 @@ import shutil
 import os
 import fnmatch
 
+# Set PEP 396 module version
+__version__="0.3"
+
 EXPECTED_CMAKE_MODULES_PATH = 'cmake/modules'
-VERSION="0.3"
 
 
 class NoMetaError(RuntimeError):
