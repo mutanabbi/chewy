@@ -18,7 +18,7 @@ import os
 import fnmatch
 
 # Set PEP 396 module version
-__version__="0.3"
+__version__="0.4"
 
 EXPECTED_CMAKE_MODULES_PATH = 'cmake/modules'
 
