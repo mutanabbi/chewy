@@ -186,3 +186,7 @@ See also
 * [Repository](https://github.com/mutanabbi/chewy-cmake-rep) of reusable CMake modules managed with `chewy`
 
 >Chewy is the best second pilot ever!
+
+[![Downloads](https://pypip.in/d/outproc/badge.png)](https://pypi.python.org/pypi/chewy)
+[![Downloads](https://pypip.in/v/outproc/badge.png)](https://pypi.python.org/pypi/chewy)
+[![Build Status](https://api.travis-ci.org/mutanabbi/chewy.png?branch=master)](https://travis-ci.org/mutanabbi/chewy)
