@@ -180,5 +180,11 @@ version control сервис, предоставляющий доступ к ф�
 4. Модули необходимы для включения во множество локльных "проектов"
 5. Изменения в модуле должны легко переноситься в проекты
 
+А также смотрите
+================
+
+[![Downloads](https://pypip.in/d/outproc/badge.png)](https://pypi.python.org/pypi/chewy)
+[![Downloads](https://pypip.in/v/outproc/badge.png)](https://pypi.python.org/pypi/chewy)
+[![Build Status](https://api.travis-ci.org/mutanabbi/chewy.png?branch=master)](https://travis-ci.org/mutanabbi/chewy)
 
 > `Chewy` — лучший второй пилот на свете!
