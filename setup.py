@@ -12,7 +12,7 @@ import chewy
 
 
 def readfile(filename):
-    with open(filename) as f:
+    with open(filename, encoding='UTF-8') as f:
         return f.read()
 
 
