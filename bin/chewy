@@ -75,6 +75,17 @@ class Application(object):
                  'founded in installed modules'
           , nargs='*'
           )
+        sorting_group = list_parser.add_mutually_exclusive_group()
+        sorting_group.add_argument(
+            '-s'
+          , action='store_true'
+          , help='Direct sorting the modules my name (lexicographically)'
+          )
+        sorting_group.add_argument(
+            '-S'
+          , action='store_true'
+          , help='Backward sorting the modules my name'
+          )
         list_parser.set_defaults(func=self.do_list)
 
         install_parser = subparsers.add_parser(
@@ -256,8 +267,16 @@ class Application(object):
 
         for repobase, manifest in rcv_manifests(urls).items():
             log.einfo("Modules from the `{}' repository".format(repobase))
+            ordered_list = manifest.modules
+            if self.args.s is True:
+                ordered_list = sorted(manifest.modules, key=lambda mod: mod.path)
+            if self.args.S is True:
+                ordered_list = sorted(manifest.modules, key=lambda mod: mod.path, reverse=True)
             print(chewy.FancyGrid(
-                [ [mod.path, mod.version, mod.description] for mod in manifest.modules ]
+                [ [mod.path, mod.version, mod.description]
+                  for mod
+                  in ordered_list
+                ]
               ))
 
 
