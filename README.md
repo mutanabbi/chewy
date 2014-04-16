@@ -2,7 +2,7 @@ What is Chewy?
 ==============
 
 Chewy is a _CMake Helpers Easy Way sYnchronizer_.
-Chewy was designed to help an expecienced programmers to manage [CMake](http://cmake.org) modules
+Chewy was designed to help an experienced programmers to manage [CMake](http://cmake.org) modules
 in their projects (just like package managers do).
 It allows to check versions of CMake modules and to keep their freshness by synchronizing
 with a repository (or even few repositories), so you always have last versions of them in
