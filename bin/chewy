@@ -64,7 +64,7 @@ class Application(object):
 
         list_parser = subparsers.add_parser(
             'list'
-          , help="Show available modules by repositores' URLs."
+          , help="Show available modules by repositories' URLs."
           , aliases=['ls']
           )
         list_parser.add_argument(
