@@ -75,9 +75,9 @@ As result you gonna see a list of
     *|U|M|D filename local-version remote-version
 
 where,
-- `*` - you have a last version of the module
-- `U` - there is an **U**pdate 
-- `M` - the local module was **M**odified
+- `*` - you have a lastest version of the module
+- `U` - there is an Update 
+- `M` - the local module was Modified
 - `D` - there is no corresponded module on the repository
 
 
