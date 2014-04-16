@@ -315,7 +315,7 @@ class Application(object):
                         self.rcv_module(mod, sf)
                     # TODO pass 'can't create modules dir' exception through
                     except RuntimeError as ex:
-                        log.eerror("Can't update the module `{}': {}".format(url, ex))
+                        log.eerror("Can't update the module `{}': {}".format(mod, ex))
 
 
 
