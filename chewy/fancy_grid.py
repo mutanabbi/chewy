@@ -11,10 +11,10 @@ class FancyGrid(object):
     def __init__(self, table):
         ''' Pass any sequence of sequences here '''
         # TODO: Support generators (iterable objects of any type)
-        assert(hasattr(table, '__iter__') and hasattr(table[0], '__iter__'))
+        assert hasattr(table, '__iter__') and hasattr(table[0], '__iter__')
         # TODO: assert all raws contains same number of fields
 
-        rows = len(table)
+        #rows = len(table)
         cols = len(table[0])
 
         ## 1) get max size for columns from 1st till last - 1

@@ -7,7 +7,7 @@
 import re
 
 
-_X_META_REGEX = re.compile('^\s*#\s+X-Chewy-([^:]+):\s*(.*)\s*$')
+_X_META_REGEX = re.compile(r'^\s*#\s+X-Chewy-([^:]+):\s*(.*)\s*$')
 
 PATH = 'Path'
 VERSION = 'Version'

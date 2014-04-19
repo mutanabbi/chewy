@@ -3,15 +3,13 @@
 # -*- coding: utf-8 -*-
 #
 
-import sys
-import os
-
 import chewy
-import chewy.session
 
 import argparse
-import urllib.parse
 import tempfile
+
+import sys
+import os
 
 
 try:
@@ -171,7 +169,7 @@ class Application(object):
         elif isinstance(obj, str):
             url = obj
         else:
-            assert(False)
+            assert False
 
         # Doesn't catch any exception because any error means module receiving is fall
         ep = chewy.HttpEndpoint(url)
@@ -193,7 +191,7 @@ class Application(object):
             # Create necessary temporary directorie's sub tree
             create_subtree(tmpdirname, mod.path)
             # Write module to file
-            with open(chewy.sandbox_path(tmpdirname, mod.path), 'wt', encoding='utf-8') as f:
+            with open(chewy.sandbox_path(tmpdirname, mod.path), 'w', encoding='utf-8') as f:
                 f.write(data)
 
 
@@ -210,7 +208,7 @@ class Application(object):
 
                 # Going to write just received data to the temporary dir
                 # TODO: Strip repobasename
-                with open(chewy.sandbox_path(tmpdirname, relpath), 'wt', encoding='utf-8') as f:
+                with open(chewy.sandbox_path(tmpdirname, relpath), 'w', encoding='utf-8') as f:
                     f.write(data)
                     # TODO: Version compare is required as well. Is it?
             if local_module:
@@ -242,7 +240,7 @@ class Application(object):
                 if not remote_mod:
                     status.set_remote_version(None)
                 else:
-                    assert(remote_mod.path == local_mod.path)
+                    assert remote_mod.path == local_mod.path
                     # Remember the remote version
                     status.set_remote_version(remote_mod.version)
         return status_map
@@ -326,7 +324,7 @@ class Application(object):
     def do_update(self):
         '''Execute `update' command'''
         # TODO: Use it
-        file_list = self.args.file_url
+        # file_list = self.args.file_url
         with chewy.session.Factory() as sf:
             for repobase, status_list in self.get_statuses().items():
                 for mod in [ st.module for st in status_list if st.needs_update() ]:

@@ -31,7 +31,7 @@ _MANIFEST_HEADER = '''#
 
 
 def getMetaInfo(filename):
-    f = open(filename, 'rt')
+    f = open(filename, 'r')
     content = f.read()
     return chewy.Module(content)
 
@@ -84,7 +84,7 @@ def try_to_get_repobase_from_manifest(repo_dir):
     manifest_filename = os.path.join(repo_dir, _MANIFEST_FILENAME)
     log.einfo('Try to get RepoBase from {}'.format(manifest_filename))
     if os.path.isfile(manifest_filename):
-        f = open(manifest_filename, 'rt')
+        f = open(manifest_filename, 'r')
         content = f.read()
         return chewy.Manifest(content).repobase
     # TODO More elaborate error description needed
@@ -123,7 +123,7 @@ def main():
     # Walk through the current directory down and find all files
     modules = scanDir(os.curdir, os.curdir)
     if len(modules):
-        manifest = open(_MANIFEST_FILENAME, 'wt')
+        manifest = open(_MANIFEST_FILENAME, 'w')
         manifest.write(_X_CHEWY_REPOBASE + repo_url + '\n' + _MANIFEST_HEADER)
         for mod in modules:
             if mod.repobase != repo_url:

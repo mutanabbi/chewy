@@ -4,8 +4,8 @@
 # Chewy Manifest class
 #
 
+from chewy.module import ModuleError
 import urllib
-
 import chewy
 import chewy.meta as meta
 

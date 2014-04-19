@@ -18,7 +18,7 @@ import os
 import fnmatch
 
 # Set PEP 396 module version
-__version__="0.4"
+__version__ = "0.4"
 
 EXPECTED_CMAKE_MODULES_PATH = 'cmake/modules'
 
@@ -27,7 +27,7 @@ class NoMetaError(RuntimeError):
     pass
 
 
-def modules_dir_lookup(start_path = os.getcwd()):
+def modules_dir_lookup(start_path=os.getcwd()):
     while start_path != '/':
         try_mod_dir = os.path.join(start_path, EXPECTED_CMAKE_MODULES_PATH)
         if os.path.isdir(try_mod_dir):
@@ -47,7 +47,7 @@ def modules_lookup(modules_dir):
 
 
 def open_module(module_file):
-    with open(module_file, 'rt') as f:
+    with open(module_file, 'r') as f:
         content = f.read()
         return Module(content)
 
@@ -73,7 +73,7 @@ def collect_installed_modules(modules_dir):
 
 def find(seq, pred):
     return next(
-        filter(lambda x: pred(x), seq)
+        (x for x in seq if pred(x))
       , None
       )
 
@@ -84,10 +84,7 @@ class PathError(RuntimeError):
 
 # TODO: unittests
 def sandbox_path(prefix, path):
-    assert(
-        'We expect prefix is an absolute path in the function by security reason'
-        and prefix == os.path.abspath(prefix)
-      )
+    assert 'We expect prefix is an absolute path in the function by security reason' and prefix == os.path.abspath(prefix)
     abspath = os.path.abspath(os.path.join(prefix, path))
     if not abspath.startswith(prefix):
         raise PathError(
@@ -101,7 +98,7 @@ def copytree(src, dst, symlinks=False, ignore=None):
     '''
         shutil.copytree can't copy to existed destenition. We need the own analogue
     '''
-    assert(src and dst)
+    assert src and dst
     for path, dirs, files in os.walk(src, topdown=True):
         base = path[ len(src) if path.startswith(src) else 0 : ].strip('/')
         for d in dirs:
@@ -109,6 +106,6 @@ def copytree(src, dst, symlinks=False, ignore=None):
             if not os.path.exists(dirname):
                 os.mkdir(dirname)
             elif not os.path.isdir(dirname):
-                RuntimeError("Path {} is exist and it isn't directory as expected".format(dirnmae))
+                RuntimeError("Path {} is exist and it isn't directory as expected".format(dirname))
         for f in files:
             shutil.copy(os.path.join(path, f), os.path.join(dst, base, f))

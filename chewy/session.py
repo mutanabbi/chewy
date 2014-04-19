@@ -51,7 +51,7 @@ class Factory(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc, traceback):
         for domain in self.__cp:
             self.__cp[domain].close()
 
@@ -75,7 +75,6 @@ class Session(object):
             raise TypeError('Endpoint to contact has invalid type')
 
         self.__ep = endpoint
-        import socket
         try:
             if self.__ep.is_ssl:
                 self.__connection = http.client.HTTPSConnection(self.__ep.hostname, self.__ep.port)
@@ -97,7 +96,7 @@ class Session(object):
         # TODO Translate and rethrow a possible exception?
         contents = self.retrieve_remote_file(url)
         manifest = chewy.Manifest(contents)
-        assert('We expect the repobase is a part of URL' and manifest.repobase.startswith(self.__ep.geturl()))
+        assert 'We expect the repobase is a part of URL' and manifest.repobase.startswith(self.__ep.geturl())
         return manifest
 
 

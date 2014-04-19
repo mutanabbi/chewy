@@ -32,7 +32,7 @@ class Module(object):
             self.repobase = repobase
             self.version = chewy.Version(version)
 
-    def __eq__ (self, other):
+    def __eq__(self, other):
         '''
             Module is equal comparable, but note It isn't depended from module version
         '''
