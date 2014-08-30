@@ -57,7 +57,6 @@ class Application(object):
           , help='CMake modules directory to operate with'
           )
 
-
         subparsers = self.cmd_parser.add_subparsers(help='Available sub-commands:', dest='cmd')
 
         list_parser = subparsers.add_parser(
