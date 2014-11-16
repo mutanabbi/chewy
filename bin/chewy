@@ -270,7 +270,7 @@ class Application(object):
             if self.args.S is True:
                 ordered_list = sorted(manifest.modules, key=lambda mod: mod.path, reverse=True)
             print(chewy.FancyGrid(
-                [ [mod.path, mod.version, mod.description]
+                [ [mod.path, str(mod.version), mod.description]
                   for mod
                   in ordered_list
                 ]
