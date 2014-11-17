@@ -310,8 +310,8 @@ class Application(object):
                     [
                         m.status_as_string()
                       , m.module.path
-                      , m.module.version
-                      , m.available_version()
+                      , str(m.module.version)
+                      , str(m.available_version())
                       , m.module.description
                     ]
                     for m in status_list
