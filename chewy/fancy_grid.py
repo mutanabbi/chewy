@@ -8,6 +8,8 @@ class FancyGrid(object):
     # t = [[55555.666, 'aaa', '20', 'aaaaaaaa', 66], [42.5, 'bbbbbbbbbbbbb', '44444', 'bb', 112], [42, 'cc', 3, 'ccc', 555555555555]]
     # print(FancyGrid(t))
 
+    # TODO [Parameterized formats](https://pyformat.info/#param_align) may help here!
+
     def __init__(self, table):
         ''' Pass any sequence of sequences here '''
         # TODO: Support generators (iterable objects of any type)
