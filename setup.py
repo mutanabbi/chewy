@@ -39,9 +39,9 @@ setup(
       , 'Operating System :: POSIX :: Linux'
       , 'Programming Language :: Python'
         # TODO What about other Python versions?
-      , 'Programming Language :: Python :: 3'
+      , 'Programming Language :: Python :: 3.4'
       , 'Topic :: Software Development :: Version Control'
       ]
-  , install_requires = ['argparse', 'setuptools']
+  , install_requires = ['setuptools']
   , test_suite       = 'test'
   )
