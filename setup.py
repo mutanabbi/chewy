@@ -39,7 +39,7 @@ setup(
       , 'Operating System :: POSIX :: Linux'
       , 'Programming Language :: Python'
         # TODO What about other Python versions?
-      , 'Programming Language :: Python :: 3.4'
+      , 'Programming Language :: Python :: 3'
       , 'Topic :: Software Development :: Version Control'
       ]
   , install_requires = ['setuptools']
