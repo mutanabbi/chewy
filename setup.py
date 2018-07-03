@@ -3,6 +3,8 @@
 # Install script for `chewy`
 #
 
+# Standard imports
+import pathlib
 try:
     from setuptools import setup
 except ImportError:
@@ -10,11 +12,16 @@ except ImportError:
 
 import chewy
 
+def sources_dir():
+    return pathlib.Path(__file__).parent
 
 def readfile(filename):
-    with open(filename, encoding='UTF-8') as f:
+    with (sources_dir() / filename).open(encoding='UTF-8') as f:
         return f.read()
 
+def get_requirements_from(filename):
+    with (sources_dir() / filename).open(encoding='UTF-8') as f:
+        return f.readlines()
 
 setup(
     name             = 'chewy'
@@ -38,10 +45,10 @@ setup(
         # TODO Is it really Linux only?
       , 'Operating System :: POSIX :: Linux'
       , 'Programming Language :: Python'
-        # TODO What about other Python versions?
       , 'Programming Language :: Python :: 3'
       , 'Topic :: Software Development :: Version Control'
       ]
-  , install_requires = ['setuptools']
+  , install_requires = get_requirements_from('requirements.txt')
   , test_suite       = 'test'
+  , zip_safe         = True
   )
